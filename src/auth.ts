@@ -50,7 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         signOut: '/logout',
     },
     callbacks: {
-        authorized: async ({ auth }) => {
+        signIn(auth) {
             console.log(auth?.user?.name);
             if (auth?.user?.email && !config.login.whitelist.includes(auth.user.email)) return false;
 
