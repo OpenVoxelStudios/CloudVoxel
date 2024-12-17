@@ -31,7 +31,7 @@ export default function userDropdown({ session }: { session: Session }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span className='cursor-pointer' onClick={() => signOut({ redirectTo: '/' })}>Log out</span>
+                <span className='cursor-pointer text-red-600' onClick={() => signOut({ redirectTo: '/' })}>Log out</span>
             </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>

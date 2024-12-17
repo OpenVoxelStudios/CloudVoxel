@@ -1,3 +1,4 @@
+import FileList from "@/app/ui/fileList";
 import Header from "@/app/ui/header";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
@@ -17,6 +18,8 @@ export default async function Dashboard({
             <div>
                 Hello {session?.user?.name}!
             </div>
+
+            <FileList />
         </main>
     </>
 }
