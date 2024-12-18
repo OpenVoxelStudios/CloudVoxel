@@ -8,18 +8,14 @@ export default async function Dashboard({
 }: {
     params: Promise<{ path?: string[] }>
 }) {
-    const path = (await params).path || [];
+    const path = (await params).path?.map(pathPart => decodeURIComponent(pathPart)) || [];
     const session = await auth();
     if (!session) return redirect('/login');
 
     return <>
         <Header pathParts={path} session={session} />
         <main className="container mx-auto p-4">
-            <div>
-                Hello {session?.user?.name}!
-            </div>
-
-            <FileList />
+            <FileList pathParts={path} />
         </main>
     </>
 }
