@@ -30,7 +30,7 @@ function lsDir(pathStr: string): FileElement[] | FetchError {
         return {
             name: dirent.name,
             directory: dirent.isDirectory(),
-            size: dirent.isDirectory() ? undefined : `${details.size}B`,
+            size: dirent.isDirectory() ? undefined : `${details.size}B`, // TODO: Proper size formatting
             createdDate: details.birthtime.getTime(),
         } satisfies FileElement;
     });

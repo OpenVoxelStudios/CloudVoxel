@@ -39,6 +39,7 @@ export default function FileItem({ name, size, createdDate, directory, pathParts
                         <div className="flex space-x-4 text-xs text-gray-400">
                             {size && <span>{size}</span>}
                             <span>{new Date(createdDate).toLocaleString()}</span>
+                            {/* TODO: The delete button click opens the thing in a new tab */}
                         </div>
                     </div>
                 </div>
