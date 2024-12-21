@@ -2,7 +2,7 @@
 
 import { providerMap } from '@/auth';
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+// import { Separator } from '@/components/ui/separator'
 import { SiDiscord, SiGithub } from '@icons-pack/react-simple-icons'
 import { AuthError } from 'next-auth';
 import { signIn } from 'next-auth/react';

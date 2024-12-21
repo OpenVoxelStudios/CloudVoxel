@@ -44,6 +44,7 @@ export const providerMap = providers
     .filter((provider) => provider.id !== "credentials")
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    trustHost: true,
     providers,
     pages: {
         signIn: "/login",
@@ -51,8 +52,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     callbacks: {
         signIn(auth) {
-            console.log(auth?.user?.name);
-            if (auth?.user?.email && !config.login.whitelist.includes(auth.user.email)) return false;
+            console.log('Logged in user', auth?.user?.name);
+            if (auth?.user?.email && !Object.values(config.login.users).map(a => a.email).includes(auth.user.email)) return false;
 
             return !!auth
         },

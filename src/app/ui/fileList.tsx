@@ -1,31 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { FetchError, FileElement } from '@/app/api/dashboard/[[...path]]/route';
 import FileItem from '@/app/ui/fileItem';
 import FileItemSkeleton from '@/app/ui/fileItemSkeleton';
+import FileUploadArea from './fileUploadArea';
 
 export default function FileList({ pathParts }: { pathParts: string[] }) {
     const [files, setFiles] = useState<null | FileElement[] | FetchError>(null)
     const [isLoading, setLoading] = useState<boolean>(true)
 
-    useEffect(() => {
-        fetch(`/api/dashboard/${pathParts.map(path => encodeURIComponent(path)).join('/')}`)
+    const fetchFiles = useCallback(() => {
+        setLoading(true);
+        fetch(`/api/dashboard/${pathParts.map(path => encodeURIComponent(path)).join('/')}`, {
+            cache: 'no-cache',
+        })
             .then((res) => res.json())
             .then((data) => {
                 setFiles(data)
                 setLoading(false)
-            })
-    }, [])
+            });
+    }, [pathParts]);
+
+    useEffect(() => {
+        fetchFiles();
+    }, [pathParts, fetchFiles]);
+
 
     return (
         <>
             <h2 className="text-xl font-semibold text-white mb-4">Stored Files</h2>
             <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
+
+                <FileUploadArea server={`/api/dashboard/${pathParts.map(path => encodeURIComponent(path)).join('/')}`} />
+
                 {(isLoading || !files) ? (
                     <>
-                        <FileItemSkeleton />
-                        <FileItemSkeleton />
                         <FileItemSkeleton />
                         <FileItemSkeleton />
                         <FileItemSkeleton />
@@ -42,15 +52,17 @@ export default function FileList({ pathParts }: { pathParts: string[] }) {
                     (
                         files
                             // TODO: Proper sorting settings
-                            .sort((a, b) => a.directory ? -1 : 1)
+                            .sort((a) => a.directory ? -1 : 1)
                             .map((file, index) => (
                                 <FileItem
                                     pathParts={pathParts}
                                     key={'file-' + index}
                                     name={file.name}
                                     size={file.size}
-                                    createdDate={file.createdDate}
+                                    uploadedAt={file.uploadedAt}
                                     directory={file.directory}
+                                    author={file.author}
+                                    onDelete={fetchFiles}
                                 />
                             ))
                     )}
