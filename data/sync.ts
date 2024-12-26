@@ -7,7 +7,7 @@ import { glob } from 'glob';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { Database } from 'bun:sqlite';
 import config from '../config';
-const root = path.join(process.cwd(), 'storage');
+const root = config.root.startsWith('./') ? path.join(process.cwd(), config.root) : config.root;
 
 const sqlite = new Database(config.database.file);
 export const db = drizzle({ client: sqlite });

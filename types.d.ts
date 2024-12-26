@@ -7,6 +7,7 @@ declare global {
     }
 
     interface CloudConfig {
+        root: string;
         login: {
             providers: readonly ['Discord', 'GitHub'];
             users: Record<string, {

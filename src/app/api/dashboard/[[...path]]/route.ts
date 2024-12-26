@@ -8,9 +8,10 @@ import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { formatBytes, unformatBytes } from "@/lib/functions";
 import CONFIG from '@/../config';
-import clientconfig from "../../../../../clientconfig";
+import clientconfig from "@/../clientconfig";
 
-const root = path.join(process.cwd(), 'storage');
+const root = CONFIG.root.startsWith('./') ? path.join(process.cwd(), CONFIG.root) : CONFIG.root;
+if (!existsSync(root)) mkdirSync(root, { recursive: true });
 
 export interface FileElement {
     name: string;
@@ -178,13 +179,21 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
 export const POST = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (!req.auth || !req.auth.user) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
-    const rawPathStr = (await params).path?.map(pathPart => decodeURIComponent(pathPart)) || [];
+    const rawPathStr = (await params).path?.map(pathPart => decodeURIComponent(pathPart).replaceAll('/', '')) || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
+    if (existsSync(pathStr)) return NextResponse.json({ error: 'Path already exists.' }, { status: 400 });
 
     if (req.nextUrl.searchParams.get('folder')) {
         mkdirSync(pathStr, { recursive: true });
+
+        await db.insert(filesTable).values({
+            name: rawPathStr.pop()!,
+            path: rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/'),
+            directory: 1,
+            author: req.auth!.user!.email,
+        }).execute();
 
         return NextResponse.json({ success: true }, { status: 200 });
     }

@@ -1,4 +1,5 @@
 export default {
+    root: './storage',
     login: {
         providers: ['Discord', 'GitHub'] as const,
         users: {
