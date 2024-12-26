@@ -1,9 +1,10 @@
-import NextAuth from "next-auth"
+import NextAuth, { Session } from "next-auth"
 import type { Provider } from "next-auth/providers"
 
 import GitHub from "next-auth/providers/github"
 import Discord from "next-auth/providers/discord"
 import config from '@/../config';
+
 
 /*
 (config.login?.credentials ? [Credentials({
@@ -43,7 +44,7 @@ export const providerMap = providers
     })
     .filter((provider) => provider.id !== "credentials")
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
     trustHost: true,
     providers,
     pages: {
@@ -59,3 +60,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
     },
 })
+
+type RouteParams = {
+    params: Promise<{ [key: string]: string | string[] | undefined }>;
+    searchParams?: { [key: string]: string | string[] | undefined };
+};
+
+export const auth = nextAuth as unknown as {
+    (handler: (
+        req: NextRequest,
+        context: RouteParams
+    ) => Promise<Response> | Response
+    ): (req: NextRequest, context: RouteParams) => Promise<Response>;
+
+    (handler: (
+        req: NextRequest
+    ) => Response | undefined
+    ): (req: NextRequest & { auth: Session | null }) => void;
+
+    (): Promise<Session>;
+}

@@ -15,3 +15,10 @@ export const filesTable = sqliteTable("files", {
     unique('fullpath').on(t.path, t.name),
     primaryKey({ name: 'fullpath', columns: [t.path, t.name] }),
 ]);
+
+export const usersTable = sqliteTable("users", {
+    email: text().notNull().primaryKey(),
+    avatar: text().notNull(),
+}, (t) => [
+    index('email').on(t.email),
+]);

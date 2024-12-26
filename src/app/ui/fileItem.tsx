@@ -17,6 +17,8 @@ import {
 import { FileElement } from '@/app/api/dashboard/[[...path]]/route'
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import Image from 'next/image';
 
 
 export default function FileItem({
@@ -25,7 +27,8 @@ export default function FileItem({
     uploadedAt,
     directory,
     pathParts,
-    onDelete
+    onDelete,
+    author,
 }: Omit<FileElement, 'path'> & {
     pathParts: string[],
     onDelete: () => void
@@ -40,11 +43,16 @@ export default function FileItem({
             method: 'DELETE',
         });
 
-        if (res.status == 200) return onDelete();
+        if (res.status == 200) {
+            toast({
+                title: `Deleted "${name}" successfully.`,
+            })
+            return onDelete();
+        }
 
         const json = await res.json();
         toast({
-            title: `Could not delete "${name}"`,
+            title: `Could not delete "${name}".`,
             description: `${json?.error || 'No error message'}`,
             variant: 'destructive',
         })
@@ -67,6 +75,29 @@ export default function FileItem({
                     </div>
                 </div>
             </Link>
+            {author && (
+                <HoverCard>
+                    <HoverCardContent className="w-fit bg-gray-900 border-gray-600 text-gray-100">
+                        <div className="flex justify-between space-x-4">
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-semibold">{author.name}</h4>
+                            </div>
+                        </div>
+                    </HoverCardContent>
+                    <HoverCardTrigger asChild>
+                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden cursor-pointer">
+                            <Image
+                                unoptimized
+                                src={author.avatar}
+                                alt="User avatar"
+                                className="w-full h-full object-cover"
+                                width={64}
+                                height={64}
+                            />
+                        </div>
+                    </HoverCardTrigger>
+                </HoverCard>
+            )}
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button
@@ -86,7 +117,7 @@ export default function FileItem({
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-gray-800 border border-gray-700">
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-gray-100">Are you sure you want to delete this file?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-gray-100">Are you sure you want to delete this {directory ? 'folder' : 'file'}?</AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-400">
                             This action cannot be undone. This will permanently delete &quot;{name}&quot;.
                         </AlertDialogDescription>

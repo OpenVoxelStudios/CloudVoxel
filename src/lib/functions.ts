@@ -6,3 +6,12 @@ export function formatBytes(bytes: number): string {
     const value = parseFloat((bytes / Math.pow(k, i)).toFixed(2));
     return `${value} ${sizes[i]}`;
 }
+
+export function unformatBytes(format: string | null): number {
+    if (!format) return 0;
+    const [value, unit] = format.split(' ');
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = sizes.indexOf(unit);
+    return i === -1 ? 0 : parseInt(value) * Math.pow(k, i);
+}

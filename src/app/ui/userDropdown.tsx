@@ -15,7 +15,7 @@ import { LogOut } from 'lucide-react';
 export default function userDropdown({ session }: { session: Session }) {
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full overflow-hidden">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full overflow-hidden nofocus">
                 <UserAvatar src={session.user?.image} size={48} />
                 <span className="sr-only">User menu</span>
             </Button>

@@ -3,8 +3,9 @@ export default {
         providers: ['Discord', 'GitHub'] as const,
         users: {
             server: {
-                displayName: 'Server',
-                email: 'reserved name!@this email cannot exist!',
+                displayName: 'Server Admin',
+                email: 'server',
+                avatar: '/logo.png',
             },
             example: {
                 displayName: 'Example User',
@@ -13,17 +14,7 @@ export default {
         },
     },
     database: {
-        globFileBlacklist: ['.DS_Store']
+        file: 'file:data/db.sqlite',
+        globFileBlacklist: ['.DS_Store', 'thumbs.db', 'desktop.ini']
     },
-} satisfies {
-    login: {
-        providers: readonly ['Discord', 'GitHub'],
-        users: Record<string, {
-            displayName: string;
-            email: string;
-        }>,
-    },
-    database: {
-        globFileBlacklist: string[];
-    },
-}
+} satisfies CloudConfig;
