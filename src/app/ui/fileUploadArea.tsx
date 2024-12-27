@@ -16,7 +16,6 @@ export default function FileUploadArea({ server, fetchFiles }: { server: string,
 
     return (
         <FilePond
-            className="filepond-dark-mode"
             allowRemove={false}
             allowRevert={false}
             allowMultiple={true}

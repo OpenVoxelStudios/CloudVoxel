@@ -183,9 +183,9 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
-    if (existsSync(pathStr)) return NextResponse.json({ error: 'Path already exists.' }, { status: 400 });
 
     if (req.nextUrl.searchParams.get('folder')) {
+        if (existsSync(pathStr)) return NextResponse.json({ error: 'Path already exists.' }, { status: 400 });
         mkdirSync(pathStr, { recursive: true });
 
         await db.insert(filesTable).values({

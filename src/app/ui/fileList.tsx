@@ -124,7 +124,7 @@ export default function FileList({ pathParts }: { pathParts: string[] }) {
                             onClick={() => setSortOrder(!sortOrder)}
                             className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700 hover:text-gray-100 transition-all duration-200 ease-in-out"
                         >
-                            <div className={`transform transition-transform duration-200 ${sortOrder ? 'rotate-180' : ''}`}>
+                            <div className={`transform transition-transform duration-200${sortOrder ? ' rotate-180' : ''}`}>
                                 <ChevronUp className="h-4 w-4" />
                             </div>
                         </Button>
