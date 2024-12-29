@@ -9,9 +9,8 @@ import { auth } from "@/auth";
 import { formatBytes, unformatBytes } from "@/lib/functions";
 import CONFIG from '@/../config';
 import clientconfig from "@/../clientconfig";
-
-const root = CONFIG.root.startsWith('./') ? path.join(process.cwd(), CONFIG.root) : CONFIG.root;
-if (!existsSync(root)) mkdirSync(root, { recursive: true });
+import { createHash } from "crypto";
+import { root } from "@/lib/api";
 
 export interface FileElement {
     name: string;
@@ -80,14 +79,18 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 
     const fileStream = file.stream();
     const writeStream = createWriteStream(fullPath);
+    const hashSum = createHash('sha256');
+
     await new Promise((resolve, reject) => {
         writeStream.on('finish', resolve);
         writeStream.on('error', reject);
+
         new ReadableStream({
             start() {
                 return new Response(fileStream).body!.pipeTo(new WritableStream({
                     write(chunk) {
                         writeStream.write(chunk);
+                        hashSum.update(chunk);
                     },
                     close() {
                         writeStream.end();
@@ -97,6 +100,8 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
         });
     });
 
+    const hash = hashSum.digest('hex');
+
     await db.insert(filesTable).values({
         name: fileName,
         path: rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/'),
@@ -104,9 +109,10 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
         size: formatBytes(file.size),
         uploadedAt: Date.now(),
         author: req.auth!.user!.email,
+        hash: hash,
     }).execute();
 
-    return NextResponse.json(path.join(rawPathStr.map(p => encodeURIComponent(p)).join('/'), encodeURIComponent(fileName)), { status: 200 });
+    return NextResponse.json(path.join(rawPathStr.map(encodeURIComponent).join('/'), encodeURIComponent(fileName)), { status: 200 });
 }
 
 async function handleFileDeletion(pathStr: string, rawPathStr: string[]): Promise<NextResponse> {
@@ -149,7 +155,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
         });
     };
 
-    const rawPathStr = (await params).path?.map(pathPart => decodeURIComponent(pathPart)) || [];
+    const rawPathStr = (await params).path?.map(decodeURIComponent) || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
@@ -201,7 +207,7 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
 });
 
 export const DELETE = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
-    const rawPathStr = (await params).path?.map(pathPart => decodeURIComponent(pathPart)) || [];
+    const rawPathStr = (await params).path?.map(decodeURIComponent) || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });

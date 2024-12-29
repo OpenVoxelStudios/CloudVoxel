@@ -1,10 +1,12 @@
 'use client';
 
-import { Cloud, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import Link from 'next/link';
 import { Session } from 'next-auth';
 import { Suspense } from 'react';
 import UserDropdown from './userDropdown';
+import clientconfig from '../../../clientconfig';
+import Image from 'next/image';
 
 export default function Header({ pathParts, session }: { pathParts: string[], session: Session }) {
     return (
@@ -12,10 +14,10 @@ export default function Header({ pathParts, session }: { pathParts: string[], se
             <div className="container mx-auto px-2 sm:px-4">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center overflow-hidden">
-                        <Cloud className="flex-shrink-0 w-8 h-8 mr-3 text-blue-400" />
+                        <Image src={clientconfig.websiteLogo} alt={clientconfig.websiteName} width={32} height={32} className="flex-shrink-0 w-8 h-8 mr-3" />
                         <div className="overflow-hidden">
                             <Link href="/dashboard">
-                                <h1 className="text-2xl font-bold truncate">CloudVoxel</h1>
+                                <h1 className="text-2xl font-bold truncate">{clientconfig.websiteName}</h1>
                             </Link>
                             <Suspense>
                                 <div className="flex items-center text-xs text-gray-400 overflow-x-auto scrollbar-hide max-w-[50vw] sm:max-w-[60vw] md:max-w-[85vw]">

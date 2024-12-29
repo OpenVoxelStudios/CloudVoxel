@@ -97,3 +97,8 @@ body {
 .nofocus:focus {
   outline: none !important;
 }
+
+img {
+  user-select: none;
+  -webkit-user-drag: none;
+}

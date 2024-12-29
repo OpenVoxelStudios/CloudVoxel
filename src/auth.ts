@@ -4,6 +4,7 @@ import type { Provider } from "next-auth/providers"
 import GitHub from "next-auth/providers/github"
 import Discord from "next-auth/providers/discord"
 import config from '@/../config';
+import clientconfig from "../clientconfig";
 
 
 /*
@@ -29,8 +30,8 @@ import config from '@/../config';
  */
 
 const providers: Provider[] = ([
-    ['Discord', Discord],
-    ['GitHub', GitHub],
+    ['Discord', Discord({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
+    ['GitHub', GitHub({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
 ] as [string, Provider][]).filter(provider => (config.login.providers as unknown as string[]).includes(provider[0])).map(provider => provider[1]);
 
 export const providerMap = providers

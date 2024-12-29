@@ -21,4 +21,16 @@ declare global {
             globFileBlacklist: string[];
         }
     }
+
+    interface ClientConfig {
+        websiteName: string;
+        websiteDescription: string;
+        websiteLogo: string;
+        websiteURL: string;
+        maxFileSize: string;
+        maxFileCount: number;
+        instantUpload: boolean;
+        maxParallelUploads: number;
+        allowImagePreview: boolean;
+    }
 }

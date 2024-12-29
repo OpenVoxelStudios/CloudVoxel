@@ -1,4 +1,4 @@
-export default function FileItemSkeleton() {
+export default function FileSkeletonLoader() {
     return (
         <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
             <div className="flex items-center space-x-4">
@@ -11,8 +11,10 @@ export default function FileItemSkeleton() {
                     </div>
                 </div>
             </div>
-            <div className="h-8 bg-gray-700 rounded w-20 animate-pulse"></div>
+            <div className="flex items-center space-x-4 mr-2">
+                <div className="w-8 h-8 bg-gray-700 rounded-full animate-pulse"></div>
+                <div className="h-8 bg-gray-700 rounded w-24 animate-pulse"></div>
+            </div>
         </div>
     )
 }
-

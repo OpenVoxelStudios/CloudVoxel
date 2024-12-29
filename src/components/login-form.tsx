@@ -8,7 +8,6 @@ import { AuthError } from 'next-auth';
 import { signIn } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 
-
 export default function LoginForm() {
     return (
         <div className="lg:flex lg:space-x-8">
@@ -54,10 +53,10 @@ export default function LoginForm() {
                     <form className={`${i == 0 ? 'mt-6' : ''} space-y-4 my-3`} key={`provider-${i}`} action={async () => {
                         try {
                             await signIn(provider.id, {
-                                redirectTo: "/dashboard",
+                                redirectTo: `${location.origin}/dashboard`,
                             })
                         } catch (error) {
-                            if (error instanceof AuthError) return redirect(`/login?error=${error.type}`)
+                            if (error instanceof AuthError) return redirect(`${location.origin}/login?error=${error.type}`)
                             throw error
                         }
                     }}>

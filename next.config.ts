@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
                 pathname: '/u/**',
             },**/
         ],
+        localPatterns: [
+            {
+                pathname: '/images/**',
+            },
+        ]
     },
 };
 

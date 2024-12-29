@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import clientconfig from "../../clientconfig";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -15,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "CloudVoxel",
-  description: "An Open-Source local-first solution to file sharing.",
+  title: clientconfig.websiteName,
+  description: clientconfig.websiteDescription,
 };
 
 export default function RootLayout({

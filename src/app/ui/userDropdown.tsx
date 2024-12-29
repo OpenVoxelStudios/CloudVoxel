@@ -42,7 +42,7 @@ export default function UserDropdown({ session }: { session: Session }) {
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem
                     className="cursor-pointer text-secondary-foreground hover:bg-red-600/10 hover:text-red-600 focus:bg-red-600/10 focus:text-red-600 transition-colors rounded-md"
-                    onClick={() => signOut({ redirectTo: '/' })}
+                    onClick={() => signOut({ redirectTo: location.origin })}
                 >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>

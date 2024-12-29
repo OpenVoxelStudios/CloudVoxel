@@ -11,7 +11,7 @@ import clientconfig from '../../../clientconfig';
 
 registerPlugin(FilepondZipper(), FilePondPluginImageExifOrientation, FilePondPluginImagePreview, FilePondPluginFileValidateSize);
 
-export default function FileUploadArea({ server, fetchFiles }: { server: string, fetchFiles: () => void }) {
+export default function FileUploadArea({ server, fetchFiles }: { server: string, fetchFiles: () => Promise<void> }) {
     const { toast } = useToast();
 
     return (
