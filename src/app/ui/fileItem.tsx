@@ -158,10 +158,12 @@ export default function FileItem({
                 <ContextMenuSeparator className="bg-gray-700" />
 
                 {!directory &&
-                    <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
-                        <Download className="mr-2 h-4 w-4" />
-                        <span>Download (just click)</span>
-                    </ContextMenuItem>
+                    <Link href={`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`} target="_blank">
+                        <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
+                            <Download className="mr-2 h-4 w-4" />
+                            <span>Download</span>
+                        </ContextMenuItem>
+                    </Link>
                 }
 
                 <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
@@ -197,7 +199,7 @@ export default function FileItem({
                                         const json = await res.json();
 
                                         if (res.status == 200) {
-                                            resolve(`${location.origin}/api/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${json.hash}&code=${json.code}`);
+                                            resolve(`${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${json.hash}&code=${json.code}`);
                                         }
                                         else {
                                             toast({
@@ -209,11 +211,11 @@ export default function FileItem({
                                         }
                                     })
                                 })
-                            }} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
+                            }} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                                 <Globe className="mr-2 h-4 w-4" />
                                 <span>Everyone</span>
                             </ContextMenuItem>
-                            <ContextMenuItem onClick={() => setShareTo({ to: 'Logged-in users', url: `${location.origin}/api/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}` })} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
+                            <ContextMenuItem onClick={() => setShareTo({ to: 'Logged-in users', url: `${location.origin}/api/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}` })} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                                 <Users className="mr-2 h-4 w-4" />
                                 <span>Logged-in Users</span>
                             </ContextMenuItem>

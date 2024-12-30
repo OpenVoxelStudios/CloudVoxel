@@ -7,7 +7,7 @@ export default auth((req) => {
         return Response.redirect(newUrl)
     }
 
-    else if (!req.auth && req.nextUrl.pathname.startsWith('/api') && !req.nextUrl.pathname.startsWith("/api/auth") && !req.nextUrl.pathname.startsWith('/api/share')) {
+    else if (!req.auth && req.nextUrl.pathname.startsWith('/api') && !req.nextUrl.pathname.startsWith("/api/auth") && !req.nextUrl.pathname.startsWith('/api/share/')) {
         return new Response("Unauthorized", { status: 401 })
     }
 })

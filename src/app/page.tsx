@@ -1,8 +1,13 @@
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Code, Server, Users, Shield, Github, FileText } from 'lucide-react'
+import { ArrowRight, Code, Server, Users, Shield, Github, User } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
+import clientconfig from '../../clientconfig'
+import { redirect, RedirectType } from 'next/navigation'
 
 export default function Home() {
+  if (!clientconfig.mainPageAllowed) return redirect('/dashboard', RedirectType.replace);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
       <header className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-sm animate-slide-in-top">
@@ -29,7 +34,7 @@ export default function Home() {
 
       <footer className="bg-gray-800 text-gray-300 py-8 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <p>&copy; 2024 CloudVoxel. All rights reserved.</p>
+          <p>&copy; 2024 OpenVoxel Studios. All rights reserved.</p>
         </div>
       </footer>
     </div>
@@ -57,13 +62,17 @@ function HeroSection() {
           An Open-Source, self-hosted solution for private cloud file storage.
         </p>
         <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 animate-fade-in-up animation-delay-400">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-300">
-            Start Self-Hosting
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button size="lg" variant="outline" className="text-blue-400 border-blue-400 hover:bg-blue-400/10 transition-colors duration-300">
-            Learn More
-          </Button>
+          <Link href='/dashboard'>
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-300">
+              Open Dashboard
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href='https://github.com/OpenVoxelStudios/CloudVoxel/' target='_blank'>
+            <Button size="lg" variant="outline" className="text-blue-400 border-blue-400 hover:bg-blue-400/10 transition-colors duration-300">
+              Start Self-Hosting
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
@@ -78,18 +87,16 @@ function AboutSection() {
           <div className="animate-fade-in-left">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">About CloudVoxel</h2>
             <p className="text-gray-300 mb-6">
-              CloudVoxel is born from the belief that everyone should have the power to control their own data.
-              Our mission is to provide a robust, open-source solution for self-hosted cloud storage that puts
-              privacy and security first.
+              CloudVoxel is more than just an online file hosting service. It is an <Link href={'https://github.com/OpenVoxelStudios/CloudVoxel'} target='_blank' className='underline'>Open-Source</Link> local-first solution to file sharing.
+              Our goal is to provide the code and tools necessary for anyone to host their own cloud storage service for their needs.
             </p>
             <p className="text-gray-300 mb-6">
-              With CloudVoxel, you&apos;re not just using a cloud service - you&apos;re taking control of your digital footprint.
-              Host it on your own hardware, customize it to your needs, and enjoy the peace of mind that comes with
-              true data ownership.
+              This is the default landing page when you just downloaded the project. Good news, it works!
+              You can edit the <code>src/app/page.tsx</code> file to customize this page to your liking or disable it in <code>clientconfig.ts</code>.
             </p>
           </div>
           <div className="mt-10 lg:mt-0 flex justify-center animate-fade-in-right">
-            <Image src="/placeholder.svg?height=400&width=400" alt="CloudVoxel Illustration" className="rounded-lg shadow-2xl" height={400} width={400} />
+            <Image src={clientconfig.websiteLogo} alt="CloudVoxel Illustration" className="rounded-lg shadow-2xl" height={400} width={400} />
           </div>
         </div>
       </div>
@@ -118,7 +125,7 @@ function FeaturesSection() {
           <FeatureCard
             icon={<Users className="h-12 w-12 text-purple-400" />}
             title="Private Logins"
-            description="Secure access with private login capabilities for your cloud."
+            description="Secure access with private login capabilities for your cloud defining who can access your cloud."
             delay="400"
           />
         </div>
@@ -146,24 +153,24 @@ function RoadmapSection() {
         <h2 className="text-3xl sm:text-4xl font-bold text-center text-white mb-12 animate-fade-in-up">Project Roadmap</h2>
         <div className="space-y-12">
           <RoadmapItem
-            icon={<Shield className="h-8 w-8 text-green-400" />}
-            title="Enhanced Security"
-            description="Implementing end-to-end encryption for all stored files."
-            status="In Progress"
+            icon={<Github className="h-8 w-8 text-blue-400" />}
+            title="Open Beta"
+            description="Launch open beta for community testing and feedback."
+            status="Live!"
             delay="0"
           />
           <RoadmapItem
-            icon={<FileText className="h-8 w-8 text-yellow-400" />}
-            title="File Sharing"
-            description="Develop secure file sharing capabilities between users."
+            icon={<User className="h-8 w-8 text-yellow-400" />}
+            title="Advanced Login"
+            description="More login options and more control over who can access what folders."
             status="Planned"
             delay="200"
           />
           <RoadmapItem
-            icon={<Github className="h-8 w-8 text-blue-400" />}
-            title="Open Beta"
-            description="Launch open beta for community testing and feedback."
-            status="Upcoming"
+            icon={<Shield className="h-8 w-8 text-green-400" />}
+            title="Enhanced Security"
+            description="Implementing encryption for all stored files."
+            status="one day..."
             delay="400"
           />
         </div>
@@ -193,19 +200,21 @@ function ContactSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 animate-fade-in-up">Get Involved</h2>
         <p className="text-gray-300 mb-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
-          CloudVoxel is an open-source project, and we welcome contributions from the community.
-          Whether you&apos;re a developer, designer, or just enthusiastic about the project, there are many ways to get involved.
+          CloudVoxel is developped and maintained by <Link href='mailto:kubik@openvoxel.studio' className='underline'>Kubik</Link>. Contributions are welcome!
         </p>
         <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 animate-fade-in-up animation-delay-400">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-300">
-            Join Our Discord
-          </Button>
-          <Button size="lg" variant="outline" className="text-blue-400 border-blue-400 hover:bg-blue-400/10 transition-colors duration-300">
-            Contribute on GitHub
-          </Button>
+          <Link href="https://discord.gg/Xhvb2wujVh" target="_blank">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-300">
+              Join Our Discord
+            </Button>
+          </Link>
+          <Link href="https://github.com/OpenVoxelStudios/CloudVoxel" target="_blank">
+            <Button size="lg" variant="outline" className="text-blue-400 border-blue-400 hover:bg-blue-400/10 transition-colors duration-300">
+              Contribute on GitHub
+            </Button>
+          </Link>
         </div>
       </div>
-    </section>
+    </section >
   )
 }
-

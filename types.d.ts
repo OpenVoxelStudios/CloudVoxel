@@ -23,6 +23,7 @@ declare global {
     }
 
     interface ClientConfig {
+        mainPageAllowed: boolean;
         websiteName: string;
         websiteDescription: string;
         websiteLogo: string;

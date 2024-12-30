@@ -6,7 +6,7 @@ export default {
             server: {
                 displayName: 'Server Admin',
                 email: 'server',
-                avatar: '/logo.png',
+                avatar: '/images/icon.png',
             },
             example: {
                 displayName: 'Example User',

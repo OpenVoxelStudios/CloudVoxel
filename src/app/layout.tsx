@@ -18,6 +18,11 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: clientconfig.websiteName,
   description: clientconfig.websiteDescription,
+  icons: {
+    other: { url: '/images/icon.png' },
+    icon: '/images/favicon.ico',
+    apple: '/images/apple-icon.png',
+  },
 };
 
 export default function RootLayout({

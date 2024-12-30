@@ -55,7 +55,7 @@ async function lsDir(pathStr: string): Promise<FileElement[]> {
             ...result,
             author: result.author ? {
                 name: user.displayName,
-                avatar: avatar?.avatar || '/logo.png',
+                avatar: avatar?.avatar || clientconfig.websiteLogo,
             } : null
         };
     }) as FileElement[];
