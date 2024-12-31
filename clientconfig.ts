@@ -1,12 +1,12 @@
 export default {
     mainPageAllowed: true,
     websiteName: 'CloudVoxel',
-    websiteURL: process.env.AUTH_URL || 'waaaaa NOOO THIS HSOULD BE DEFINIININEEed Uhhhmmm 🤓',
+    websiteURL: process.env.AUTH_URL || 'http://localhost:3000',
     websiteDescription: 'An Open-Source local-first solution to file sharing.',
     websiteLogo: '/images/icon.png',
     maxFileSize: '1000 MB',
     maxFileCount: 25,
     instantUpload: true,
     maxParallelUploads: 2,
-    allowImagePreview: true,
+    allowImagePreview: false,
 } satisfies ClientConfig;

@@ -102,7 +102,14 @@ html {
   outline: none !important;
 }
 
-img {
+img,
+.notextselection {
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.notextselection {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }

@@ -50,7 +50,6 @@ export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
     providers,
     pages: {
         signIn: "/login",
-        signOut: '/logout',
     },
     callbacks: {
         signIn(auth) {

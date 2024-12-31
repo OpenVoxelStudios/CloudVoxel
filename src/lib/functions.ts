@@ -15,3 +15,7 @@ export function unformatBytes(format: string | null): number {
     const i = sizes.indexOf(unit);
     return i === -1 ? 0 : parseInt(value) * Math.pow(k, i);
 }
+
+export const sanitizedFilename = (filename: string): string => {
+    return filename.replace(/[^a-zA-Z0-9._\s-]/g, '');
+};

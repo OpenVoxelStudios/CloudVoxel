@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import path from "path";
 import { db } from "@/../data/index";
-import { filesTable } from "@/../data/schema";
+import { eqLow, filesTable } from "@/../data/schema";
 import { and, eq } from "drizzle-orm";
 import { randomUUIDv7 } from "bun";
 import { root } from "@/lib/api";
@@ -17,8 +17,8 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
     const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
     const file = db.select().from(filesTable).where(
         and(
-            eq(filesTable.name, fileName),
-            eq(filesTable.path, filePath),
+            eqLow(filesTable.name, fileName),
+            eqLow(filesTable.path, filePath),
             eq(filesTable.directory, 0),
         )
     ).get();
@@ -34,8 +34,8 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
 
     await db.update(filesTable).set({ code: code }).where(
         and(
-            eq(filesTable.name, fileName),
-            eq(filesTable.path, filePath),
+            eqLow(filesTable.name, fileName),
+            eqLow(filesTable.path, filePath),
             eq(filesTable.directory, 0),
         )
     ).execute();

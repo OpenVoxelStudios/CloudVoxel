@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "motion/react";
 import FileItem from '@/app/ui/fileItem';
-import { unformatBytes } from '@/lib/functions';
+import { sanitizedFilename, unformatBytes } from '@/lib/functions';
 import { sortOptions } from './fileListWrapper';
 import { FetchError, FileElement } from '../api/dashboard/[[...path]]/route';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +16,35 @@ import { useToast } from "@/hooks/use-toast";
 export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFiles }: { pathParts: string[], sortBy: typeof sortOptions[number], sortOrder: boolean, files: FileElement[] | FetchError, fetchFiles: () => Promise<void> }) {
     const { toast } = useToast();
     const [shareTo, setShareTo] = useState<{ to: string; url: string | undefined | Promise<string | undefined> } | null>(null);
+    const [renameTo, setRenameTo] = useState<{ from: string; to: string; } | null>(null);
+
+    const onMove = async (name: string, folder: string) => {
+        console.log(`Move to ${folder}`);
+
+        const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                move: folder,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (res.status == 200) {
+            toast({
+                title: `Moved "${name}" ${folder == '../' ? 'back' : `to "${folder}"`}.`,
+            })
+            return fetchFiles();
+        }
+
+        const json = await res.json();
+        toast({
+            title: `Could not move "${name}" ${folder == '../' ? 'back' : `to "${folder}"`}.`,
+            description: `${json?.error || 'No error message'}`,
+            variant: 'destructive',
+        });
+    };
 
     return (
         <>
@@ -29,24 +58,24 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                     </DialogHeader>
                     <div className="flex items-center space-x-2">
                         <div className="grid flex-1 gap-2">
-                            <Label htmlFor="link" className="sr-only">
+                            <Label htmlFor="filelist-link" className="sr-only">
                                 Link
                             </Label>
                             <Suspense fallback={
-                                <Input id="link" defaultValue="Loading..." readOnly />
+                                <Input id="filelist-link" defaultValue="Loading..." readOnly />
                             }>
                                 {shareTo?.url instanceof Promise ? (
                                     shareTo.url.then(url => (
                                         setShareTo({ to: shareTo.to, url: url }),
                                         <Input
-                                            id="link"
+                                            id="filelist-link"
                                             defaultValue={url || 'Something went wrong!'}
                                             readOnly
                                         />
                                     ))
                                 ) : (
                                     <Input
-                                        id="link"
+                                        id="filelist-link"
                                         defaultValue={shareTo?.url || 'Something went wrong!'}
                                         readOnly
                                     />
@@ -71,10 +100,86 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                             <Copy />
                         </Button>
                     </div>
+                    <div className="flex items-center space-x-2 sm:justify-end">
+                        <Button type="submit" size="sm" className="px-3" onClick={async () => {
+                            const url = await shareTo?.url;
+                            if (!url) return;
+                            try {
+                                await navigator.clipboard.writeText(`[${new URL(url).pathname.split('/').at(-1)}](${url})`);
+                                toast({ title: `Copied Discord link to clipboard.` })
+                            } catch (err) {
+                                toast({
+                                    title: `Failed to copy Discord link to clipboard.`,
+                                    description: String(err) || 'No error message',
+                                    variant: 'destructive',
+                                })
+                            }
+                        }}>
+                            <span>Discord Copy</span>
+                            <Copy />
+                        </Button>
+                    </div>
                     <DialogFooter className="sm:justify-end">
                         <DialogClose asChild>
                             <Button type="button" variant="secondary">
                                 Close
+                            </Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog >
+
+            <Dialog defaultOpen={false} open={renameTo !== null} onOpenChange={(open) => !open && setRenameTo(null)}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Rename file or folder</DialogTitle>
+                        <DialogDescription>Rename &quot;{renameTo?.from}&quot;.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2">
+                        <Label htmlFor="file-rename" className="sr-only">
+                            Rename
+                        </Label>
+                        <Input
+                            id="file-rename"
+                            value={renameTo?.to || ''}
+                            onChange={(e) => setRenameTo({ from: renameTo?.from || '', to: sanitizedFilename(e.target.value) })}
+                        />
+                    </div>
+                    <DialogFooter className="sm:justify-end">
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button type="button" variant="default" onClick={async () => {
+                                if (!renameTo || renameTo.to.trim() == '') return;
+
+                                const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(renameTo.from)}`, {
+                                    method: 'PATCH',
+                                    body: JSON.stringify({
+                                        rename: renameTo.to,
+                                    }),
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                });
+
+                                if (res.status == 200) {
+                                    toast({
+                                        title: `Renamed "${renameTo.from}" to "${renameTo.to}".`,
+                                    })
+                                    return fetchFiles();
+                                }
+
+                                const json = await res.json();
+                                toast({
+                                    title: `Could not rename "${renameTo.from}" to "${renameTo.to}".`,
+                                    description: `${json?.error || 'No error message'}`,
+                                    variant: 'destructive',
+                                });
+                            }}>
+                                Rename
                             </Button>
                         </DialogClose>
                     </DialogFooter>
@@ -100,7 +205,7 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="relative"
+                                className="relative notextselection"
                             >
                                 {files.sort((a, b) => {
                                     const sorting =
@@ -136,7 +241,9 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                                             author={file.author}
                                             onDelete={fetchFiles}
                                             setShareTo={setShareTo}
+                                            setRenameTo={setRenameTo}
                                             folders={files.filter(f => f.directory == 1 && f.name != file.name).map(f => f.name).sort((a, b) => a.localeCompare(b))}
+                                            onMove={onMove}
                                         />
                                     </motion.div>
                                 ))}

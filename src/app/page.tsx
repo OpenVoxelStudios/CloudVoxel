@@ -153,6 +153,7 @@ function RoadmapSection() {
         <h2 className="text-3xl sm:text-4xl font-bold text-center text-white mb-12 animate-fade-in-up">Project Roadmap</h2>
         <div className="space-y-12">
           <RoadmapItem
+            // TODO: Use new icon not @deprecated
             icon={<Github className="h-8 w-8 text-blue-400" />}
             title="Open Beta"
             description="Launch open beta for community testing and feedback."
@@ -168,9 +169,9 @@ function RoadmapSection() {
           />
           <RoadmapItem
             icon={<Shield className="h-8 w-8 text-green-400" />}
-            title="Enhanced Security"
-            description="Implementing encryption for all stored files."
-            status="one day..."
+            title="Advanced Sharing"
+            description="Create share links with a use or time limit."
+            status="Planned"
             delay="400"
           />
         </div>

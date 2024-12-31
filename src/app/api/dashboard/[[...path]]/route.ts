@@ -1,12 +1,12 @@
-import { createReadStream, createWriteStream, existsSync, mkdirSync, rmSync, Stats, statSync } from "fs";
+import { createReadStream, createWriteStream, existsSync, mkdirSync, renameSync, rmSync, Stats, statSync } from "fs";
 import { NextRequest as RealNextRequest, NextResponse } from "next/server";
 import path, { basename, parse } from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
-import { filesTable, usersTable } from "@/../data/schema";
-import { and, eq } from "drizzle-orm";
+import { eqLow, filesTable, ilike, usersTable } from "@/../data/schema";
+import { and, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
-import { formatBytes, unformatBytes } from "@/lib/functions";
+import { formatBytes, sanitizedFilename, unformatBytes } from "@/lib/functions";
 import CONFIG from '@/../config';
 import clientconfig from "@/../clientconfig";
 import { createHash } from "crypto";
@@ -43,13 +43,13 @@ function isFileElement(pathStr: string): FetchError | false | Stats {
 }
 
 async function lsDir(pathStr: string): Promise<FileElement[]> {
-    const results = await db.select().from(filesTable).where(eq(filesTable.path, pathStr == '' ? '/' : pathStr));
+    const results = await db.select().from(filesTable).where(eqLow(filesTable.path, pathStr == '' ? '/' : pathStr));
     return results.map(result => {
         const user = Object.values(CONFIG.login.users).filter(user => user.email == result.author)[0];
 
         const avatar = db.select({
             avatar: usersTable.avatar,
-        }).from(usersTable).where(eq(usersTable.email, user.email)).get();
+        }).from(usersTable).where(eqLow(usersTable.email, user.email)).get();
 
         return {
             ...result,
@@ -71,7 +71,7 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 
     if (!(file instanceof File)) return NextResponse.json({ error: 'Invalid file.' }, { status: 400 });
 
-    const fileName = file.name;
+    const fileName = sanitizedFilename(file.name);
     const fullPath = path.join(pathStr, fileName);
 
     if (existsSync(fullPath)) return NextResponse.json({ error: 'File already exists.' }, { status: 400 });
@@ -118,7 +118,7 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 async function handleFileDeletion(pathStr: string, rawPathStr: string[]): Promise<NextResponse> {
     const fileName = basename(pathStr);
     const filePath = parse(rawPathStr.join('/')).dir == '' ? '/' : parse(rawPathStr.join('/')).dir;
-    const fileStats = (await db.select().from(filesTable).where(and(eq(filesTable.path, filePath), eq(filesTable.name, fileName))).limit(1))[0];
+    const fileStats = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).limit(1))[0];
     if (!fileStats) return NextResponse.json({ error: 'File not found in database (this really should not happen... WHAT??).' }, { status: 404 });
 
     if (fileStats.directory) {
@@ -127,12 +127,12 @@ async function handleFileDeletion(pathStr: string, rawPathStr: string[]): Promis
         if (subFiles.length > 0) return NextResponse.json({ error: 'Cannot delete non-empty directories.' }, { status: 400 });
         else {
             rmSync(pathStr, { force: true, recursive: true });
-            await db.delete(filesTable).where(and(eq(filesTable.path, filePath), eq(filesTable.name, fileName))).execute();
+            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
             return NextResponse.json({ success: true }, { status: 200 });
         }
     } else {
         try {
-            await db.delete(filesTable).where(and(eq(filesTable.path, filePath), eq(filesTable.name, fileName))).execute();
+            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
             rmSync(pathStr);
 
             const response = NextResponse.json({ success: true }, { status: 200 });
@@ -214,4 +214,113 @@ export const DELETE = async (req: RealNextRequest, { params }: { params: Promise
     if (existsSync(pathStr) === false) return NextResponse.json({ error: 'Path does not exist!' }, { status: 404 });
 
     return handleFileDeletion(pathStr, rawPathStr);
-}
+};
+
+export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+    try {
+        const body = await req.json();
+
+        const renameParam = sanitizedFilename(body?.rename || '');
+        const UNSAFE_moveParam = body?.move || '';
+
+        if (!renameParam && !UNSAFE_moveParam) return NextResponse.json({ error: 'No operation specified. Either move either rename should be defined in the search params.' }, { status: 400 });
+        if (renameParam && UNSAFE_moveParam) return NextResponse.json({ error: 'Both move and rename operations are not allowed at the same time.' }, { status: 400 });
+
+        const rawPathStr = (await params).path?.map(decodeURIComponent) || [];
+        const pathStr = path.join(root, ...rawPathStr);
+
+        if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
+        if (existsSync(pathStr) === false) return NextResponse.json({ error: 'Path does not exist!' }, { status: 404 });
+
+        const fileName = basename(pathStr);
+        const filePath = parse(rawPathStr.join('/')).dir == '' ? '/' : parse(rawPathStr.join('/')).dir
+
+        if (renameParam) {
+            const renameExists = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, renameParam))).limit(1))[0];
+            if (renameExists) return NextResponse.json({ error: 'A file with this name already exists.' }, { status: 400 });
+            if (existsSync(path.join(root, ...rawPathStr.slice(0, -1), renameParam))) return NextResponse.json({ error: 'File exists on the storage system. Please contact the server administrator if you believe this is a bug.' }, { status: 400 });
+
+            // Rename the file itself
+            await db.update(filesTable).set({ name: renameParam }).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
+
+            // Rename all possible subfiles
+            const getFullPath = (base: string, name: string) =>
+                base === '/' ? name : `${base}/${name}`;
+
+            const oldPath = getFullPath(filePath, fileName);
+            const newPath = getFullPath(filePath, renameParam);
+
+            await db.update(filesTable)
+                .set({
+                    path: sql`REPLACE(${filesTable.path}, ${oldPath}, ${newPath})`
+                })
+                .where(
+                    or(
+                        eqLow(filesTable.path, oldPath),
+                        ilike(filesTable.path, `${oldPath}/%`)
+                    )
+                )
+                .execute();
+
+            // Actually rename
+            renameSync(pathStr, path.join(root, ...rawPathStr.slice(0, -1), renameParam));
+
+            return NextResponse.json({ success: true }, { status: 200 });
+        }
+
+        else if (UNSAFE_moveParam) {
+            const moveParam = sanitizedFilename(UNSAFE_moveParam);
+            const destination = rawPathStr.slice(0, -1);
+            if (UNSAFE_moveParam != '../') destination.push(moveParam);
+            else destination.pop();
+
+            const moveExists = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, destination.join('/')), eqLow(filesTable.name, fileName))).limit(1))[0];
+            if (moveExists) return NextResponse.json({ error: 'A file with this name exists in the destination folder.' }, { status: 400 });
+
+            // Edit path in the database
+            let oldPath = rawPathStr.slice(0, -1).join('/');
+            if (oldPath == '') oldPath = '/';
+
+            const newPath = destination.join('/') == '' ? '/' : destination.join('/');
+
+            // The file itself
+            await db.update(filesTable)
+                .set({
+                    path: sql`REPLACE(${filesTable.path}, ${oldPath}, ${newPath})`
+                })
+                .where(and(
+                    eqLow(filesTable.path, oldPath),
+                    eqLow(filesTable.name, fileName),
+                ))
+                .execute();
+            
+            // All possible subfiles
+            const old = `${oldPath == '/' ? '' : oldPath + '/'}${fileName}`;
+            const secondNewPath = destination.concat(fileName).join('/') == '' ? '/' : destination.concat(fileName).join('/');
+            console.log(old, secondNewPath);
+            await db.update(filesTable)
+                .set({
+                    path: sql`REPLACE(${filesTable.path}, ${old}, ${secondNewPath})`
+                })
+                .where(or(
+                    ilike(filesTable.path, `${old}/%`),
+                    eqLow(filesTable.path, old)
+                ))
+                .execute();
+            
+
+
+            // Actually move
+            renameSync(pathStr, path.join(root, ...destination, fileName));
+
+            return NextResponse.json({ success: true }, { status: 200 });
+        }
+
+        else {
+            return NextResponse.json({ error: 'Not implemented.' }, { status: 501 });
+        }
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: 'Something went wrong server side.' }, { status: 500 });
+    }
+};

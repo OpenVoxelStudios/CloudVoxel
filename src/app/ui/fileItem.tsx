@@ -1,7 +1,7 @@
 'use client';
 
 import { Dispatch, SetStateAction, useState } from 'react'
-import { Download, Edit, File, Folder, FolderInput, Globe, Share2, Trash2, Users } from 'lucide-react'
+import { Download, Edit, File, Folder, FolderInput, FolderOutput, Globe, Share2, Trash2, Users } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
     AlertDialog,
@@ -31,15 +31,19 @@ export default function FileItem({
     onDelete,
     author,
     folders,
-    setShareTo
+    setShareTo,
+    setRenameTo,
+    onMove
 }: Omit<FileElement, 'path'> & {
     pathParts: string[],
     folders: string[],
     setShareTo: Dispatch<SetStateAction<{
         to: string;
         url: string | undefined | Promise<string | undefined>;
-    } | null>>
+    } | null>>,
+    setRenameTo: Dispatch<SetStateAction<{ from: string; to: string; } | null>>,
     onDelete: () => Promise<void>,
+    onMove: (name: string, folder: string) => Promise<void>,
 }) {
     const { toast } = useToast();
     const [isDeleting, setIsDeleting] = useState(false);
@@ -65,10 +69,6 @@ export default function FileItem({
             variant: 'destructive',
         })
         setIsDeleting(false);
-    };
-
-    const onMove = (folder: string) => {
-        console.log(`Move to ${folder}`);
     };
 
     return (
@@ -166,24 +166,34 @@ export default function FileItem({
                     </Link>
                 }
 
-                <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
+                <ContextMenuItem onClick={() => {
+                    setRenameTo({ from: name, to: name });
+                }} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                     <Edit className="mr-2 h-4 w-4" />
-                    <span>Rename (no)</span>
+                    <span>Rename</span>
                 </ContextMenuItem>
 
-                <ContextMenuSub>
-                    <ContextMenuSubTrigger className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 data-[state=open]:bg-gray-800 data-[highlighted]:text-white data-[state=open]:text-white">
-                        <FolderInput className="mr-2 h-4 w-4" />
-                        <span>Move to (no)</span>
-                    </ContextMenuSubTrigger>
-                    <ContextMenuSubContent className="w-64 bg-gray-900 border-gray-700">
-                        {folders.map(folder =>
-                            <ContextMenuItem key={`move-from-${name}-to-${folder}`} onClick={() => onMove(folder)} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
-                                {folder}
-                            </ContextMenuItem>
-                        )}
-                    </ContextMenuSubContent>
-                </ContextMenuSub>
+                {(folders.length > 0 || pathParts.length > 0) &&
+                    <ContextMenuSub>
+                        <ContextMenuSubTrigger className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 data-[state=open]:bg-gray-800 data-[highlighted]:text-white data-[state=open]:text-white">
+                            <FolderInput className="mr-2 h-4 w-4" />
+                            <span>Move to</span>
+                        </ContextMenuSubTrigger>
+                        <ContextMenuSubContent className="w-64 bg-gray-900 border-gray-700">
+                            {pathParts.length > 0 &&
+                                <ContextMenuItem key={`move-from-${name}-back`} onClick={() => onMove(name, '../')} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
+                                    <FolderOutput className="mr-2 h-4 w-4" />
+                                    Back
+                                </ContextMenuItem>
+                            }
+                            {folders.map(folder =>
+                                <ContextMenuItem key={`move-from-${name}-to-${folder}`} onClick={() => onMove(name, folder)} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800">
+                                    {folder}
+                                </ContextMenuItem>
+                            )}
+                        </ContextMenuSubContent>
+                    </ContextMenuSub>
+                }
 
                 {!directory &&
                     <ContextMenuSub>

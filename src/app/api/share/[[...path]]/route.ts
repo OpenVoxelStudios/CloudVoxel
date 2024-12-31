@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import path from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
-import { filesTable } from "@/../data/schema";
+import { eqLow, filesTable } from "@/../data/schema";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { root } from "@/lib/api";
@@ -22,8 +22,8 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
     const file = db.select().from(filesTable).where(
         and(
-            eq(filesTable.name, fileName),
-            eq(filesTable.path, filePath),
+            eqLow(filesTable.name, fileName),
+            eqLow(filesTable.path, filePath),
             eq(filesTable.hash, fileHash),
             eq(filesTable.code, fileCode),
             eq(filesTable.directory, 0),

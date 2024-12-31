@@ -1,5 +1,5 @@
-import { filesTable } from './schema';
-import { existsSync, lstatSync } from 'node:fs';
+import { eqLow, filesTable, lower } from './schema';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import path, { basename, parse } from 'node:path';
 import { formatBytes } from '../src/lib/functions';
 import { and, eq } from 'drizzle-orm';
@@ -7,6 +7,7 @@ import { glob } from 'glob';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { Database } from 'bun:sqlite';
 import config from '../config';
+import { createHash } from 'node:crypto';
 const root = config.root.startsWith('./') ? path.join(process.cwd(), config.root) : config.root;
 
 const sqlite = new Database(config.database.file);
@@ -17,7 +18,7 @@ const files = await db.select().from(filesTable);
 for await (const file of files) {
     if (!existsSync(path.join(root, file.path, file.name))) {
         console.info(`Deleting ${file.name} from the database`);
-        await db.delete(filesTable).where(and(eq(filesTable.name, file.name), eq(filesTable.path, file.path))).limit(1);
+        await db.delete(filesTable).where(and(eqLow(filesTable.name, file.name), eqLow(filesTable.path, file.path))).limit(1);
     }
 }
 
@@ -33,6 +34,7 @@ for await (const file of await glob('**/*', { cwd: root, follow: false, ignore: 
             size: fileStats.isDirectory() ? undefined : formatBytes(fileStats!.size),
             uploadedAt: fileStats.isDirectory() ? undefined : fileStats!.birthtime.getTime(),
             directory: fileStats.isDirectory() ? 1 : 0,
+            hash: fileStats.isDirectory() ? undefined : createHash('sha256').update(readFileSync(path.join(root, file))).digest('hex'),
         })
         .onConflictDoNothing();
-}
+};
