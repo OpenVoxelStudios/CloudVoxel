@@ -6,6 +6,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -60,6 +64,10 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    --filepond-background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));
+    --filepond-color: #fff;
+    --filepond-border-color: #BBB;
   }
 }
 
@@ -71,4 +79,37 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.dark .filepond--panel-root {
+  background-color: var(--filepond-background-color);
+}
+
+.dark .filepond--drop-label {
+  color: var(--filepond-color);
+}
+
+.dark .filepond--file {
+  color: var(--filepond-color);
+  border-color: var(--filepond-border-color);
+}
+
+.dark .filepond--drip-blob {
+  background-color: var(--filepond-border-color);
+}
+
+.nofocus:focus {
+  outline: none !important;
+}
+
+img,
+.notextselection {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.notextselection {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }

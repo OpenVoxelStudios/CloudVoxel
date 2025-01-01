@@ -18,7 +18,11 @@
 /out/
 
 # production
+/drizzle
 /build
+/storage
+config.ts
+/data/*.sqlite
 
 # misc
 .DS_Store
@@ -31,10 +35,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts

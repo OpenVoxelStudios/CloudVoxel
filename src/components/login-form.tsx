@@ -1,74 +1,62 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { providerMap } from '@/auth';
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { SiGithub } from '@icons-pack/react-simple-icons'
+import { SiDiscord, SiGithub } from '@icons-pack/react-simple-icons'
+import { AuthError } from 'next-auth';
+import { signIn } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { motion } from "motion/react"
 
 export default function LoginForm() {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-
-    const handleEmailLogin = (e: React.FormEvent) => {
-        e.preventDefault()
-        // TODO: Logic also
-        console.log('Email login:', email, password)
-    }
-
-    const handleGithubLogin = () => {
-        // TODO: logic
-        console.log('GitHub login initiated')
-    }
-
     return (
         <div className="lg:flex lg:space-x-8">
-            <div className="lg:flex-1 space-y-6">
-                <form onSubmit={handleEmailLogin} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <Button type="submit" className="w-full">
-                        Login with Email
-                    </Button>
-                </form>
-            </div>
-
             <div className="mt-6 lg:mt-0 lg:flex-1">
-                <div className="relative">
-                    <Separator className="my-4 lg:hidden" />
-                    <div className="lg:absolute lg:inset-0 flex items-center justify-center">
-                        <span className="bg-background px-2 text-muted-foreground text-sm lg:text-base">
-                            Or continue with
-                        </span>
-                    </div>
-                </div>
-
-                <div className="mt-6 space-y-4">
-                    <Button variant="outline" className="w-full" onClick={handleGithubLogin}>
-                        <SiGithub className="mr-2 h-4 w-4" />
-                        GitHub
-                    </Button>
-                </div>
+                {Object.values(providerMap).map((provider, i) => (
+                    <motion.div
+                        key={`provider-${i}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                                duration: 0.2,
+                                delay: i * 0.1
+                            }
+                        }}
+                        exit={{ opacity: 0, y: -20 }}
+                    >
+                        <form
+                            className={`${i == 0 ? 'mt-6' : ''} my-3 space-y-4`}
+                            action={async () => {
+                                try {
+                                    await signIn(provider.id, {
+                                        redirectTo: `${location.origin}/dashboard`,
+                                    })
+                                } catch (error) {
+                                    if (error instanceof AuthError)
+                                        return redirect(`${location.origin}/login?error=${error.type}`)
+                                    throw error
+                                }
+                            }}
+                        >
+                            <Button
+                                type='submit'
+                                variant="outline"
+                                className="w-full border-gray-700 bg-gray-800 text-gray-100 hover:bg-gray-600 hover:text-gray-50"
+                            >
+                                {(() => {
+                                    const icons = {
+                                        github: <SiGithub className="mr-2 h-4 w-4" />,
+                                        discord: <SiDiscord className="mr-2 h-4 w-4" />
+                                    };
+                                    return icons[provider.id.toLowerCase() as keyof typeof icons] || null;
+                                })()}
+                                {provider.name}
+                            </Button>
+                        </form>
+                    </motion.div>
+                ))}
             </div>
         </div>
     )
