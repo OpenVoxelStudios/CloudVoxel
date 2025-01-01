@@ -53,7 +53,7 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                     <DialogHeader>
                         <DialogTitle>Share link</DialogTitle>
                         <DialogDescription>
-                            Anyone who has this link will be able to view this.
+                            {shareTo?.to == 'Everyone' ? 'Anyone who has this link will be able to view this.' : 'Only logged in users will be able to access with this link.'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex items-center space-x-2">

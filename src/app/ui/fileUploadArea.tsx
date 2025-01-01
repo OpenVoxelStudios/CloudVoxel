@@ -6,10 +6,11 @@ import FilepondZipper from 'filepond-plugin-zipper';
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
 import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
+import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import clientconfig from '../../../clientconfig';
 
-registerPlugin(FilepondZipper(), FilePondPluginImageExifOrientation, FilePondPluginImagePreview, FilePondPluginFileValidateSize);
+registerPlugin(FilepondZipper(), FilePondPluginImageExifOrientation, FilePondPluginImagePreview, FilePondPluginFileValidateSize, FilePondPluginFileMetadata);
 
 export default function FileUploadArea({ server, fetchFiles }: { server: string, fetchFiles: () => Promise<void> }) {
     const { toast } = useToast();
@@ -71,6 +72,7 @@ export default function FileUploadArea({ server, fetchFiles }: { server: string,
             instantUpload={clientconfig.instantUpload}
             maxParallelUploads={clientconfig.maxParallelUploads}
             allowImagePreview={clientconfig.allowImagePreview}
+            allowFileMetadata={clientconfig.allowFileMetadata}
         />
     )
 };

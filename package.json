@@ -33,6 +33,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.38.3",
     "filepond": "^4.32.6",
+    "filepond-plugin-file-metadata": "^1.0.8",
     "filepond-plugin-file-validate-size": "^2.2.8",
     "filepond-plugin-image-exif-orientation": "^1.0.11",
     "filepond-plugin-image-preview": "^4.6.12",
@@ -55,7 +56,6 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.14",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",

@@ -33,5 +33,6 @@ declare global {
         instantUpload: boolean;
         maxParallelUploads: number;
         allowImagePreview: boolean;
+        allowFileMetadata: boolean;
     }
 }

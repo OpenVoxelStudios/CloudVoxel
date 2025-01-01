@@ -9,4 +9,5 @@ export default {
     instantUpload: true,
     maxParallelUploads: 2,
     allowImagePreview: false,
+    allowFileMetadata: false,
 } satisfies ClientConfig;

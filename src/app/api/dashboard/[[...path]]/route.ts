@@ -274,14 +274,14 @@ export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<
             if (UNSAFE_moveParam != '../') destination.push(moveParam);
             else destination.pop();
 
-            const moveExists = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, destination.join('/')), eqLow(filesTable.name, fileName))).limit(1))[0];
+            const newPath = destination.join('/') == '' ? '/' : destination.join('/');
+            const moveExists = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, newPath), eqLow(filesTable.name, fileName))).limit(1))[0];
             if (moveExists) return NextResponse.json({ error: 'A file with this name exists in the destination folder.' }, { status: 400 });
 
             // Edit path in the database
             let oldPath = rawPathStr.slice(0, -1).join('/');
             if (oldPath == '') oldPath = '/';
 
-            const newPath = destination.join('/') == '' ? '/' : destination.join('/');
 
             // The file itself
             await db.update(filesTable)
