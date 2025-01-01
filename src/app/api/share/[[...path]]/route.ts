@@ -20,7 +20,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
     const fileName = rawPathStr.pop()!;
     const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
-    const file = db.select().from(filesTable).where(
+    const file = await db.select().from(filesTable).where(
         and(
             eqLow(filesTable.name, fileName),
             eqLow(filesTable.path, filePath),

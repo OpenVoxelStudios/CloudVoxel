@@ -3,7 +3,7 @@ import path from "path";
 import { db } from "@/../data/index";
 import { eqLow, filesTable } from "@/../data/schema";
 import { and, eq } from "drizzle-orm";
-import { randomUUIDv7 } from "bun";
+import { v7 as randomUUIDv7 } from 'uuid';
 import { root } from "@/lib/api";
 
 
@@ -15,7 +15,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
 
     const fileName = rawPathStr.pop()!;
     const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
-    const file = db.select().from(filesTable).where(
+    const file = await db.select().from(filesTable).where(
         and(
             eqLow(filesTable.name, fileName),
             eqLow(filesTable.path, filePath),
@@ -30,7 +30,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
         code: file.code,
     }, { status: 200 });
 
-    const code = randomUUIDv7("base64url");
+    const code = randomUUIDv7();
 
     await db.update(filesTable).set({ code: code }).where(
         and(

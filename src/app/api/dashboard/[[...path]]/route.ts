@@ -44,10 +44,10 @@ function isFileElement(pathStr: string): FetchError | false | Stats {
 
 async function lsDir(pathStr: string): Promise<FileElement[]> {
     const results = await db.select().from(filesTable).where(eqLow(filesTable.path, pathStr == '' ? '/' : pathStr));
-    return results.map(result => {
+    return await Promise.all(results.map(async result => {
         const user = Object.values(CONFIG.login.users).filter(user => user.email == result.author)[0];
 
-        const avatar = db.select({
+        const avatar = await db.select({
             avatar: usersTable.avatar,
         }).from(usersTable).where(eqLow(usersTable.email, user.email)).get();
 
@@ -58,7 +58,7 @@ async function lsDir(pathStr: string): Promise<FileElement[]> {
                 avatar: avatar?.avatar || clientconfig.websiteLogo,
             } : null
         };
-    }) as FileElement[];
+    })) as FileElement[];
 }
 
 async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: string[]): Promise<NextResponse> {
@@ -293,7 +293,7 @@ export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<
                     eqLow(filesTable.name, fileName),
                 ))
                 .execute();
-            
+
             // All possible subfiles
             const old = `${oldPath == '/' ? '' : oldPath + '/'}${fileName}`;
             const secondNewPath = destination.concat(fileName).join('/') == '' ? '/' : destination.concat(fileName).join('/');
@@ -307,7 +307,7 @@ export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<
                     eqLow(filesTable.path, old)
                 ))
                 .execute();
-            
+
 
 
             // Actually move
