@@ -1,4 +1,4 @@
-import { eqLow, filesTable, lower } from './schema';
+import { eqLow, filesTable } from './schema';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import path, { basename, parse } from 'node:path';
 import { formatBytes } from '../src/lib/functions';

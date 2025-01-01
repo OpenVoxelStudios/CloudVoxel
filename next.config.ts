@@ -1,45 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    // Image configuration
     images: {
-        remotePatterns: [
-            // Uncomment and add any external image sources you need
-            // {
-            //   protocol: 'https',
-            //   hostname: 'avatars.githubusercontent.com',
-            //   port: '',
-            //   pathname: '/u/**',
-            // },
-        ],
+        remotePatterns: [],
         localPatterns: [
             {
                 pathname: '/images/**',
             },
         ],
-        // Enable image optimization caching for better performance
-        deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     },
 
-    // Production optimizations
-    productionBrowserSourceMaps: false, // Disable source maps in production for better performance
-    compress: true, // Enable gzip compression
-    poweredByHeader: false, // Remove X-Powered-By header for security
-
-    // Cache optimization
-    generateEtags: true,
-
-    // Build optimization
-    swcMinify: true, // Use SWC for minification (faster than Terser)
-
-    // Runtime configuration
+    compress: true,
+    poweredByHeader: false,
     reactStrictMode: true,
+    productionBrowserSourceMaps: false,
 
-    // Output configuration
-    output: 'standalone', // Creates a standalone build that's easier to deploy
-
-    // Headers for security and caching
     async headers() {
         return [
             {
@@ -68,7 +43,6 @@ const nextConfig: NextConfig = {
                 ]
             },
             {
-                // Cache static assets
                 source: '/images/:path*',
                 headers: [
                     {
@@ -79,10 +53,7 @@ const nextConfig: NextConfig = {
             }
         ];
     },
-
-    // Webpack configuration for production optimization
     webpack: (config, { isServer }) => {
-        // Optimize CSS
         if (!isServer) {
             config.optimization.splitChunks.cacheGroups = {
                 ...config.optimization.splitChunks.cacheGroups,
@@ -94,7 +65,6 @@ const nextConfig: NextConfig = {
                 },
             };
         }
-
         return config;
     },
 };
