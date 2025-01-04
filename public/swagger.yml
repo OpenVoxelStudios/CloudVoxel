@@ -1,0 +1,406 @@
+openapi: 3.0.3
+info:
+  title: CloudVoxel API
+  description: |-
+    Those are the OpenAPI 3.0 specifications for CloudVoxel. You can learn more about CloudVoxel at [github.com/OpenVoxelStudios/CloudVoxel](https://github.com/OpenVoxelStudios/CloudVoxel).
+
+    Consider checking out CloudVoxel's Github and leaving a star if you like it!
+  termsOfService: /terms
+  contact:
+    email: contact@openvoxel.studio
+  version: 1.0.0-beta
+tags:
+  - name: Files Access
+    description: Access CloudVoxel's files API
+  - name: /api/auth
+    description: Route managed by AuthJS and user interacted - no API routes
+    externalDocs:
+      description: AuthJS Website
+      url: https://authjs.dev
+paths:
+  /api/dashboard/{path}:
+    get:
+      tags:
+        - Files Access
+      summary: Get the files in a folder or download a file
+      description: Returns either an array of files and folders or the stream of the file.
+      operationId: getDashboardByPath
+      parameters:
+        - name: path
+          in: path
+          description: Full path to access the file.
+          example: rootfolder/subfolder/file.txt
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilePath"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileElement"
+            application/octet-stream:
+              schema:
+                $ref: "#/components/schemas/FileStream"
+        "403":
+          description: Path is not in root
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: File not found or hash/code is wrong
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Files Access
+      summary: Get the file from a public link
+      description: Returns the stream of a file when the correct hash and code is provided. A body should be provided if it isn't a folder creation.
+      operationId: postDashboardByPath
+      parameters:
+        - name: path
+          in: path
+          description: Full path to access the file.
+          example: rootfolder/subfolder/file.txt
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilePath"
+        - name: folder
+          in: query
+          description: Is it a folder creation?
+          example: true
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        required: false
+        content:
+          application/octet-stream:
+            schema:
+              $ref: "#/components/schemas/FileStream"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          description: User issue when uploading files (missing file, multiple files, invalid file), file already exists or file exceeds the maximum upload limit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Path is not in root
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags:
+        - Files Access
+      summary: Edit a file or a folder
+      description: Rename or move the specified file or folder.
+      operationId: patchDashboardByPath
+      parameters:
+        - name: path
+          in: path
+          description: Full path to access the file.
+          example: rootfolder/subfolder/file.txt
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilePath"
+        - name: PATCH-move
+          in: header
+          description: Where to move this file or folder ('../' to move it back)
+          example: "folder name"
+          required: false
+          schema:
+            type: string
+            pattern: '^(\.\.\/|[a-zA-Z0-9._\s-]+)$'
+        - name: PATCH-rename
+          in: header
+          description: How to rename this file or folder
+          example: "new name"
+          required: false
+          schema:
+            type: string
+            pattern: '^(\.\.\/|[a-zA-Z0-9._\s-]+)$'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          description: Cannot delete non-empty directories.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "403":
+          description: Path is not in root
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Server side error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - Files Access
+      summary: Delete a file or a directory.
+      description: Deletes a file or an empty directory from the server. WARNING this is irreversible
+      operationId: deleteDashboardByPath
+      parameters:
+        - name: path
+          in: path
+          description: Full path to access the file.
+          example: rootfolder/subfolder/file.txt
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilePath"
+        - name: folder
+          in: query
+          description: Is it a folder creation?
+          example: true
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          description: Cannot delete non-empty directories.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "403":
+          description: Path is not in root
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Server side error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/share/{path}:
+    get:
+      tags:
+        - Files Access
+      summary: Get the file from a public link
+      description: Returns the stream of a file when the correct hash and code is provided.
+      operationId: getShareByPath
+      parameters:
+        - name: path
+          in: path
+          description: Full path to access the file.
+          example: rootfolder/subfolder/file.txt
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilePath"
+        - name: code
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/FileCode"
+        - name: hash
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/FileHash"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/octet-stream:
+              schema:
+                $ref: "#/components/schemas/FileStream"
+        "400":
+          description: No hash/code parameter provided in the URL.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Path is not in root
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: File not found or hash/code is wrong
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/sharelink/{path}:
+    get:
+      tags:
+        - Files Access
+      summary: Get the required credentials to access a file with a public link
+      description: Returns the hash and the code of the specified file for public access. You can then access the file on GET /api/share/{path}
+      operationId: getSharelinkByPath
+      parameters:
+        - name: path
+          in: path
+          description: Full path to access the file.
+          example: rootfolder/subfolder/file.txt
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilePath"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    example: "file.txt"
+                  hash:
+                    $ref: "#/components/schemas/FileHash"
+                  code:
+                    $ref: "#/components/schemas/FileCode"
+        "403":
+          description: Path is not in root
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+          example: "Error Message"
+    Success:
+      type: object
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: true
+    FileElement:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: "The name of the file."
+          example: file.txt
+        path:
+          type: string
+          description: "The full path to the file excluding the file name."
+          example: /
+        size:
+          type: string
+          nullable: true
+          description: "The size of the file as a string, or null if not applicable."
+          example: "3.14 KB"
+        uploadedAt:
+          type: integer
+          format: int64
+          nullable: true
+          description: "The Unix timestamp when the file was uploaded, or null."
+          example: 1735686000000
+        author:
+          type: object
+          additionalProperties: false
+          nullable: true
+          description: "Details about the author, or null if no author is associated."
+          properties:
+            avatar:
+              type: string
+              description: "The URL of the author's avatar."
+              example: "https://example.com/avatar.png"
+            name:
+              type: string
+              description: "The name of the author."
+              example: "Username"
+        directory:
+          type: integer
+          description: "Indicates if the file is a directory. Possible values are 0 (false) or 1 (true)."
+          example: 0
+        hash:
+          $ref: "#/components/schemas/FileHash"
+        code:
+          $ref: "#/components/schemas/FileCode"
+    FileStream:
+      type: string
+      format: binary
+      example: File content in an octet stream.
+    FilePath:
+      type: string
+      pattern: "^[a-zA-Z0-9._\\s/-]*$"
+    FileCode:
+      type: string
+      description: "The share code of the file if already generated - always null if directory"
+      nullable: true
+      example: "123...random UUID v7...789"
+      pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+      maxLength: 36
+    FileHash:
+      type: string
+      description: "The sha256 hash of the file - null if directory"
+      nullable: true
+      example: "abc...valid sha256 hash...xyz"
+      pattern: "^[A-Fa-f0-9]{64}$"
+      maxLength: 64
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Authorization
+      in: header
+security:
+  - api_key: []

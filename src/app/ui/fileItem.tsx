@@ -33,7 +33,9 @@ export default function FileItem({
     folders,
     setShareTo,
     setRenameTo,
-    onMove
+    onMove,
+    code,
+    hash,
 }: Omit<FileElement, 'path'> & {
     pathParts: string[],
     folders: string[],
@@ -204,22 +206,24 @@ export default function FileItem({
                         <ContextMenuSubContent className="w-64 bg-gray-900 border-gray-700">
                             <ContextMenuItem onClick={async () => {
                                 setShareTo({
-                                    to: 'Everyone', url: new Promise(async resolve => {
-                                        const res = await fetch(`/api/sharelink/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`);
-                                        const json = await res.json();
+                                    to: 'Everyone', url: (hash && code) ?
+                                        `${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${hash}&code=${code}`
+                                        : new Promise(async resolve => {
+                                            const res = await fetch(`/api/sharelink/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`);
+                                            const json = await res.json();
 
-                                        if (res.status == 200) {
-                                            resolve(`${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${json.hash}&code=${json.code}`);
-                                        }
-                                        else {
-                                            toast({
-                                                title: `Could generate a share link.`,
-                                                description: `${json?.error || 'No error message'}`,
-                                                variant: 'destructive',
-                                            })
-                                            resolve(undefined)
-                                        }
-                                    })
+                                            if (res.status == 200) {
+                                                resolve(`${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${json.hash}&code=${json.code}`);
+                                            }
+                                            else {
+                                                toast({
+                                                    title: `Could generate a share link.`,
+                                                    description: `${json?.error || 'No error message'}`,
+                                                    variant: 'destructive',
+                                                })
+                                                resolve(undefined)
+                                            }
+                                        })
                                 })
                             }} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                                 <Globe className="mr-2 h-4 w-4" />

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import clientconfig from "@/../clientconfig";
 
 export const metadata: Metadata = {
-  title: clientconfig.websiteName,
+  title: `API Documentation - ${clientconfig.websiteName}`,
   description: clientconfig.websiteDescription,
   icons: {
     other: { url: '/images/icon.png' },
@@ -17,8 +17,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      {children}
-    </>
+    <html lang="en">
+      <body>
+        {children}
+      </body>
+    </html>
   );
 }

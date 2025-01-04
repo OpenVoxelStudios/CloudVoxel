@@ -22,6 +22,8 @@ export interface FileElement {
         name: string;
     } | null;
     directory: number;
+    hash?: string;
+    code?: string;
 }
 
 export interface FetchError {
@@ -112,38 +114,10 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
         hash: hash,
     }).execute();
 
-    return NextResponse.json(path.join(rawPathStr.map(encodeURIComponent).join('/'), encodeURIComponent(fileName)), { status: 200 });
+    return NextResponse.json({ success: true }, { status: 200 });
 }
 
-async function handleFileDeletion(pathStr: string, rawPathStr: string[]): Promise<NextResponse> {
-    const fileName = basename(pathStr);
-    const filePath = parse(rawPathStr.join('/')).dir == '' ? '/' : parse(rawPathStr.join('/')).dir;
-    const fileStats = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).limit(1))[0];
-    if (!fileStats) return NextResponse.json({ error: 'File not found in database (this really should not happen... WHAT??).' }, { status: 404 });
-
-    if (fileStats.directory) {
-        const subFiles = await lsDir(rawPathStr.join('/'));
-
-        if (subFiles.length > 0) return NextResponse.json({ error: 'Cannot delete non-empty directories.' }, { status: 400 });
-        else {
-            rmSync(pathStr, { force: true, recursive: true });
-            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
-            return NextResponse.json({ success: true }, { status: 200 });
-        }
-    } else {
-        try {
-            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
-            rmSync(pathStr);
-
-            const response = NextResponse.json({ success: true }, { status: 200 });
-            response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=10');
-            return response;
-        } catch (error) {
-            return NextResponse.json({ error: String(error) }, { status: 500 });
-        }
-    }
-}
-
+// TODO: Optimize json length by removing user duplicate
 export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.auth?.user?.email && req.auth?.user?.image && req.nextUrl.pathname == '/api/dashboard') {
         await db.insert(usersTable).values({
@@ -155,7 +129,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
         });
     };
 
-    const rawPathStr = (await params).path?.map(decodeURIComponent) || [];
+    const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
@@ -185,7 +159,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
 export const POST = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (!req.auth || !req.auth.user) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
-    const rawPathStr = (await params).path?.map(pathPart => decodeURIComponent(pathPart).replaceAll('/', '')) || [];
+    const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
@@ -206,27 +180,15 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
     else return handleFileUpload(req, pathStr, rawPathStr);
 });
 
-export const DELETE = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
-    const rawPathStr = (await params).path?.map(decodeURIComponent) || [];
-    const pathStr = path.join(root, ...rawPathStr);
-
-    if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
-    if (existsSync(pathStr) === false) return NextResponse.json({ error: 'Path does not exist!' }, { status: 404 });
-
-    return handleFileDeletion(pathStr, rawPathStr);
-};
-
 export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     try {
-        const body = await req.json();
-
-        const renameParam = sanitizedFilename(body?.rename || '');
-        const UNSAFE_moveParam = body?.move || '';
+        const renameParam = sanitizedFilename(req.headers.get('PATCH-rename') || '');
+        const UNSAFE_moveParam = req.headers.get('PATCH-move') || '';
 
         if (!renameParam && !UNSAFE_moveParam) return NextResponse.json({ error: 'No operation specified. Either move either rename should be defined in the search params.' }, { status: 400 });
         if (renameParam && UNSAFE_moveParam) return NextResponse.json({ error: 'Both move and rename operations are not allowed at the same time.' }, { status: 400 });
 
-        const rawPathStr = (await params).path?.map(decodeURIComponent) || [];
+        const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
         const pathStr = path.join(root, ...rawPathStr);
 
         if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
@@ -322,5 +284,40 @@ export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<
     } catch (e) {
         console.error(e);
         return NextResponse.json({ error: 'Something went wrong server side.' }, { status: 500 });
+    }
+};
+
+export const DELETE = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+    const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
+    const pathStr = path.join(root, ...rawPathStr);
+
+    if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
+    if (existsSync(pathStr) === false) return NextResponse.json({ error: 'Path does not exist!' }, { status: 404 });
+
+    const fileName = basename(pathStr);
+    const filePath = parse(rawPathStr.join('/')).dir == '' ? '/' : parse(rawPathStr.join('/')).dir;
+    const fileStats = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).limit(1))[0];
+    if (!fileStats) return NextResponse.json({ error: 'File not found in database.' }, { status: 404 });
+
+    if (fileStats.directory) {
+        const subFiles = await lsDir(rawPathStr.join('/'));
+
+        if (subFiles.length > 0) return NextResponse.json({ error: 'Cannot delete non-empty directories.' }, { status: 400 });
+        else {
+            rmSync(pathStr, { force: true, recursive: true });
+            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
+            return NextResponse.json({ success: true }, { status: 200 });
+        }
+    } else {
+        try {
+            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
+            rmSync(pathStr);
+
+            const response = NextResponse.json({ success: true }, { status: 200 });
+            response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=10');
+            return response;
+        } catch (error) {
+            return NextResponse.json({ error: String(error) }, { status: 500 });
+        }
     }
 };

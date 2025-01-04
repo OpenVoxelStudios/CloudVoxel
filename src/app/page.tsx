@@ -4,40 +4,45 @@ import Image from 'next/image'
 import Link from 'next/link'
 import clientconfig from '../../clientconfig'
 import { redirect, RedirectType } from 'next/navigation'
+import RootLayout, { metadata as defaultMetadata } from './dashboard/layout'
+
+export const metadata = defaultMetadata;
 
 export default function Home() {
   if (!clientconfig.mainPageAllowed) return redirect('/dashboard', RedirectType.replace);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
-      <header className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-sm animate-slide-in-top">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="text-2xl font-bold text-blue-400">CloudVoxel</div>
-            <div className="space-x-1 sm:space-x-4">
-              <NavLink href="#about">About</NavLink>
-              <NavLink href="#features">Features</NavLink>
-              <NavLink href="#roadmap">Roadmap</NavLink>
-              <NavLink href="#contact">Contact</NavLink>
+    <RootLayout>
+      <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
+        <header className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-sm animate-slide-in-top">
+          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="text-2xl font-bold text-blue-400">CloudVoxel</div>
+              <div className="space-x-1 sm:space-x-4">
+                <NavLink href="#about">About</NavLink>
+                <NavLink href="#features">Features</NavLink>
+                <NavLink href="#roadmap">Roadmap</NavLink>
+                <NavLink href="#contact">Contact</NavLink>
+              </div>
             </div>
+          </nav>
+        </header>
+
+        <main className="flex-grow">
+          <HeroSection />
+          <AboutSection />
+          <FeaturesSection />
+          <RoadmapSection />
+          <ContactSection />
+        </main>
+
+        <footer className="bg-gray-800 text-gray-300 py-8 px-4">
+          <div className="max-w-7xl mx-auto text-center">
+            <p>&copy; 2024 OpenVoxel Studios. All rights reserved.</p>
           </div>
-        </nav>
-      </header>
-
-      <main className="flex-grow">
-        <HeroSection />
-        <AboutSection />
-        <FeaturesSection />
-        <RoadmapSection />
-        <ContactSection />
-      </main>
-
-      <footer className="bg-gray-800 text-gray-300 py-8 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <p>&copy; 2024 OpenVoxel Studios. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </RootLayout>
   )
 }
 

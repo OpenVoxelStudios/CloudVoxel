@@ -23,11 +23,8 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
 
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
             method: 'PATCH',
-            body: JSON.stringify({
-                move: folder,
-            }),
             headers: {
-                'Content-Type': 'application/json',
+                'PATCH-move': folder
             },
         });
 
@@ -157,11 +154,8 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
 
                                 const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(renameTo.from)}`, {
                                     method: 'PATCH',
-                                    body: JSON.stringify({
-                                        rename: renameTo.to,
-                                    }),
                                     headers: {
-                                        'Content-Type': 'application/json',
+                                        'PATCH-rename': renameTo.to,
                                     },
                                 });
 
@@ -239,6 +233,8 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                                             uploadedAt={file.uploadedAt}
                                             directory={file.directory}
                                             author={file.author}
+                                            hash={file.hash}
+                                            code={file.code}
                                             onDelete={fetchFiles}
                                             setShareTo={setShareTo}
                                             setRenameTo={setRenameTo}
@@ -250,8 +246,7 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                             </motion.div>
                         </AnimatePresence>
                     )
-            )
-            }
+            )}
         </>
     )
 }

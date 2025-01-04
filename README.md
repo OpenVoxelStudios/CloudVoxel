@@ -1,5 +1,6 @@
 # CloudVoxel
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9876/badge)](https://www.bestpractices.dev/projects/9876)
 
 **A powerful, local-first solution for large file sharing**
 
@@ -30,7 +31,7 @@ First, clone the repository and prepare the configuration files:
 ```bash
 git clone https://github.com/OpenVoxelStudios/CloudVoxel/
 cd CloudVoxel
-cp .env.example .env.local
+cp .env.example .env.production
 cp config.example.ts config.ts
 ```
 
@@ -40,7 +41,7 @@ Now, there are 3 config files, so go ahead and edit them!
 ```yaml
 - clientconfig.ts: All the configuration that will be used client side
 - config.ts: The server side configuration
-- .env.local: All the credentials and keys
+- .env.production: All the credentials and keys
 ```
 
 Now that you have your config, you can init the database with one of these commands:
@@ -63,6 +64,20 @@ Or in production mode:
 npx next build
 npx next start
 ```
+
+NOTE: NextJS does not use https. If you want to open it to the internet in https (highly recommended), you can use software like NGINX to serve as a "proxy".
+
+## Contributing
+
+If you wish to contribute to CloudVoxel you can freely do so!
+
+Please read the [CONTRIBUTING.md](/CONTRIBUTING.md) guide before doing so.
+
+### Bug reports / Vulnerability reports
+
+If you find bugs, please let us know! You can create a bug report in the [issues tab](https://github.com/OpenVoxelStudios/CloudVoxel/issues) of the repository.
+
+If you find a vulnerability, we encourage you to privately submit it in the [security tab](https://github.com/OpenVoxelStudios/CloudVoxel/security) of the repository. Thank you for keeping CloudVoxel safe!
 
 ---
 

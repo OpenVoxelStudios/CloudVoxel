@@ -14,7 +14,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     if (!fileHash) return NextResponse.json({ error: 'No hash parameter provided in the URL.' }, { status: 400 });
     if (!fileCode) return NextResponse.json({ error: 'No code parameter provided in the URL.' }, { status: 400 });
 
-    const rawPathStr = (await params).path?.map(decodeURIComponent) || [];
+    const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
