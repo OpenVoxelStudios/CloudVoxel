@@ -1,11 +1,11 @@
-import { eqLow, filesTable } from './schema';
+import { eqLow, filesTable } from './schema.ts';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import path, { basename, parse } from 'node:path';
-import { formatBytes } from '../src/lib/functions';
+import { formatBytes } from '../src/lib/functions.ts';
 import { and } from 'drizzle-orm';
 import { glob } from 'glob';
 import { drizzle } from 'drizzle-orm/libsql';
-import config from '../config';
+import config from '../config.ts';
 import { createHash } from 'node:crypto';
 const root = config.root.startsWith('./') ? path.join(process.cwd(), config.root) : config.root;
 export const db = drizzle({ connection: { url: config.database.file } });

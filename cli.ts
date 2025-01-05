@@ -1,12 +1,12 @@
 import { drizzle } from 'drizzle-orm/libsql';
-import config from './config';
-import path from 'path';
+import config from './config.ts';
+import path from 'node:path';
 import select, { Separator } from '@inquirer/select';
 import checkbox from '@inquirer/checkbox';
 import input from '@inquirer/input';
 import confirm from '@inquirer/confirm';
-import { spawnSync } from 'child_process';
-import { apiKeysTable, eqLow, usersTable } from './data/schema';
+import { spawnSync } from 'node:child_process';
+import { apiKeysTable, eqLow, usersTable } from './data/schema.ts';
 import { v7 } from 'uuid';
 
 const filePermissions: { [key: string]: string } = {
@@ -53,9 +53,9 @@ async function main() {
 
     else if (answer === 'sync') {
         console.log('Syncing files...');
-        const syncProcess = spawnSync(process.argv[0], [path.join(__dirname, 'data', 'sync.ts')], {
+        const syncProcess = spawnSync(process.argv[0], ['run', path.join(process.cwd(), 'data', 'sync.ts')], {
             stdio: 'inherit',
-            cwd: __dirname
+            cwd: process.cwd()
         });
         if (syncProcess.error) {
             console.error('Error running sync:', syncProcess.error);
