@@ -6,6 +6,7 @@ import Discord from "next-auth/providers/discord"
 import config from '@/../config';
 import clientconfig from "../clientconfig";
 
+import { eqLow, usersTable } from "@/../data/schema";
 
 /*
 (config.login?.credentials ? [Credentials({
@@ -32,7 +33,7 @@ import clientconfig from "../clientconfig";
 const providers: Provider[] = ([
     ['Discord', Discord({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
     ['GitHub', GitHub({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
-] as [string, Provider][]).filter(provider => (config.login.providers as unknown as string[]).includes(provider[0])).map(provider => provider[1]);
+] as [string, Provider][]).filter(provider => (config.providers as unknown as string[]).includes(provider[0])).map(provider => provider[1]);
 
 export const providerMap = providers
     .map((provider) => {
@@ -52,11 +53,19 @@ export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
         signIn: "/login",
     },
     callbacks: {
-        signIn(auth) {
-            console.log('Logged in user', auth?.user?.name);
-            if (auth?.user?.email && !Object.values(config.login.users).map(a => a.email).includes(auth.user.email)) return false;
+        async signIn(auth) {
+            const { db } = await import("@/../data/index");
+            console.log('Loggin try in user', auth?.user?.name);
 
-            return !!auth
+            const user = auth.user.email ? await db.select().from(usersTable).where(eqLow(usersTable.email, auth.user.email)).get() : undefined;
+
+            if (!auth.user.email || !user) return false;
+
+            if (auth.user.image) await db.update(usersTable).set({
+                avatar: auth.user.image,
+            }).where(eqLow(usersTable.email, auth.user.email)).execute();
+
+            return true;
         },
     },
 })
@@ -75,7 +84,7 @@ export const auth = nextAuth as unknown as {
 
     (handler: (
         req: NextRequest
-    ) => Response | undefined
+    ) => Promise<Response | undefined> | Response | undefined
     ): (req: NextRequest & { auth: Session | null }) => void;
 
     (): Promise<Session>;

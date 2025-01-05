@@ -42,6 +42,7 @@ Now, there are 3 config files, so go ahead and edit them!
 - clientconfig.ts: All the configuration that will be used client side
 - config.ts: The server side configuration
 - .env.production: All the credentials and keys
+- .env.development: (optional) You can also setup this file to use it when running in dev mode
 ```
 
 Now that you have your config, you can init the database with one of these commands:
@@ -66,6 +67,16 @@ npx next start
 ```
 
 NOTE: NextJS does not use https. If you want to open it to the internet in https (highly recommended), you can use software like NGINX to serve as a "proxy".
+
+## Documentation
+
+> There's no dedicated page yet!
+
+You can manage users, manage API keys and sync the local storage with the database with the new CLI introduced in v1.1!
+```bash
+bun cli.ts
+# it seems like "deno" does not work with the cli...
+```
 
 ## Contributing
 

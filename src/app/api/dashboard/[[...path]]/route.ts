@@ -3,14 +3,14 @@ import { NextRequest as RealNextRequest, NextResponse } from "next/server";
 import path, { basename, parse } from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
-import { eqLow, filesTable, ilike, usersTable } from "@/../data/schema";
+import { apiKeysTable, eqLow, filesTable, ilike, usersTable } from "@/../data/schema";
 import { and, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { formatBytes, sanitizedFilename, unformatBytes } from "@/lib/functions";
-import CONFIG from '@/../config';
 import clientconfig from "@/../clientconfig";
 import { createHash } from "crypto";
 import { root } from "@/lib/api";
+import validateApi from "@/lib/validateApi";
 
 export interface FileElement {
     name: string;
@@ -47,17 +47,21 @@ function isFileElement(pathStr: string): FetchError | false | Stats {
 async function lsDir(pathStr: string): Promise<FileElement[]> {
     const results = await db.select().from(filesTable).where(eqLow(filesTable.path, pathStr == '' ? '/' : pathStr));
     return await Promise.all(results.map(async result => {
-        const user = Object.values(CONFIG.login.users).filter(user => user.email == result.author)[0];
-
-        const avatar = await db.select({
-            avatar: usersTable.avatar,
-        }).from(usersTable).where(eqLow(usersTable.email, user.email)).get();
+        const user = !result.author ? null :
+            result.author == 'server' ? {
+                name: 'Server Admin',
+                avatar: clientconfig.websiteLogo,
+            } : await db.select({
+                avatar: usersTable.avatar,
+                name: usersTable.name,
+            }).from(usersTable).where(eqLow(usersTable.email, result.author)).get()
+            || await db.select({ name: apiKeysTable.name }).from(apiKeysTable).where(eqLow(apiKeysTable.key, result.author)).get();
 
         return {
             ...result,
-            author: result.author ? {
-                name: user.displayName,
-                avatar: avatar?.avatar || clientconfig.websiteLogo,
+            author: user ? {
+                name: user.name,
+                avatar: 'avatar' in user ? user.avatar : clientconfig.websiteLogo,
             } : null
         };
     })) as FileElement[];
@@ -65,9 +69,9 @@ async function lsDir(pathStr: string): Promise<FileElement[]> {
 
 async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: string[]): Promise<NextResponse> {
     const formData = await req.formData();
-    const files = formData.getAll('files').filter(file => file instanceof File);
+    const files = formData.getAll('files').concat(formData.get('file') || []).filter(file => file instanceof File);
 
-    if (files.length === 0) return NextResponse.json({ error: 'No files uploaded.' }, { status: 400 });
+    if (!files || files.length === 0) return NextResponse.json({ error: 'No files uploaded.' }, { status: 400 });
     if (files.length > 1) return NextResponse.json({ error: 'Only one file can be uploaded at a time.' }, { status: 400 });
     const file = files[0];
 
@@ -110,7 +114,7 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
         directory: 0,
         size: formatBytes(file.size),
         uploadedAt: Date.now(),
-        author: req.auth!.user!.email,
+        author: req?.auth!?.user!?.email || req.headers.get('Authorization') || 'api',
         hash: hash,
     }).execute();
 
@@ -118,15 +122,10 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 }
 
 // TODO: Optimize json length by removing user duplicate
-export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
-    if (req.auth?.user?.email && req.auth?.user?.image && req.nextUrl.pathname == '/api/dashboard') {
-        await db.insert(usersTable).values({
-            email: req.auth.user.email,
-            avatar: req.auth.user.image,
-        }).onConflictDoUpdate({
-            target: usersTable.email,
-            set: { avatar: req.auth.user.image },
-        });
+export const GET = async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+    if (req.headers.get('Authorization')) {
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.get']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.get.' }, { status: 401 });
     };
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
@@ -139,7 +138,13 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     if (isFile && 'error' in isFile) return NextResponse.json(isFile, { status: 404 });
 
     if (!isFile) {
-        const response = NextResponse.json(await lsDir(rawPathStr.join('/')), { status: 200 });
+        let files = await lsDir(rawPathStr.join('/'));
+        if (req.headers.get('Authorization')) {
+            const hasSharePerms = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.share']);
+            if (!hasSharePerms) files = files.map(f => ({ ...f, code: undefined }));
+        }
+
+        const response = NextResponse.json(files, { status: 200 });
         response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=10');
         return response;
     } else {
@@ -154,17 +159,21 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
         response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=10');
         return response;
     }
-});
+};
 
 export const POST = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
-    if (!req.auth || !req.auth.user) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    if (req.headers.get('Authorization')) {
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.edit']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.edit.' }, { status: 401 });
+    }
+    else if (!req.auth || !req.auth.user) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
 
-    if (req.nextUrl.searchParams.get('folder')) {
+    if (req.nextUrl.searchParams.get('folder') == 'true') {
         if (existsSync(pathStr)) return NextResponse.json({ error: 'Path already exists.' }, { status: 400 });
         mkdirSync(pathStr, { recursive: true });
 
@@ -172,7 +181,7 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
             name: rawPathStr.pop()!,
             path: rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/'),
             directory: 1,
-            author: req.auth!.user!.email,
+            author: req?.auth!?.user!?.email || req.headers.get('Authorization') || 'api',
         }).execute();
 
         return NextResponse.json({ success: true }, { status: 200 });
@@ -181,6 +190,11 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
 });
 
 export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+    if (req.headers.get('Authorization')) {
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.edit']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.edit.' }, { status: 401 });
+    };
+
     try {
         const renameParam = sanitizedFilename(req.headers.get('PATCH-rename') || '');
         const UNSAFE_moveParam = req.headers.get('PATCH-move') || '';
@@ -270,8 +284,6 @@ export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<
                 ))
                 .execute();
 
-
-
             // Actually move
             renameSync(pathStr, path.join(root, ...destination, fileName));
 
@@ -288,6 +300,11 @@ export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<
 };
 
 export const DELETE = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+    if (req.headers.get('Authorization')) {
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.delete']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.delete.' }, { status: 401 });
+    };
+
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
 

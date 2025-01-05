@@ -3,11 +3,17 @@ import path from "path";
 import { db } from "@/../data/index";
 import { eqLow, filesTable } from "@/../data/schema";
 import { and, eq } from "drizzle-orm";
-import { v7 as randomUUIDv7 } from 'uuid';
+import { v7 } from 'uuid';
 import { root } from "@/lib/api";
+import validateApi from "@/lib/validateApi";
 
 
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+    if (req.headers.get('Authorization')) {
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.share']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.share.' }, { status: 401 });
+    };
+
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
 
@@ -30,7 +36,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
         code: file.code,
     }, { status: 200 });
 
-    const code = randomUUIDv7();
+    const code = v7();
 
     await db.update(filesTable).set({ code: code }).where(
         and(

@@ -6,7 +6,7 @@ export const filesTable = sqliteTable("files", {
     path: text().notNull(),
     size: text(),
     uploadedAt: int(),
-    author: text(),
+    author: text().notNull(),
     directory: int().notNull(),
     hash: text(),
     code: text(),
@@ -23,10 +23,20 @@ export const filesTable = sqliteTable("files", {
 
 export const usersTable = sqliteTable("users", {
     email: text().notNull().primaryKey(),
-    avatar: text().notNull(),
+    name: text().notNull().unique(),
+    avatar: text(),
 }, (t) => [
     index('email').on(lower(t.email)),
 ]);
+
+export const apiKeysTable = sqliteTable("apiKeys", {
+    key: text().notNull().primaryKey(),
+    name: text().notNull().unique(),
+    permissions: text().notNull(),
+}, (t) => [
+    index('key').on(lower(t.key)),
+]);
+
 
 export function lower(str: AnySQLiteColumn): SQL {
     return sql`lower(${str})`;
