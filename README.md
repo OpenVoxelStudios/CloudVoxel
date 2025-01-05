@@ -1,4 +1,5 @@
 # CloudVoxel
+[![Latest Version](https://img.shields.io/github/v/release/OpenVoxelStudios/CloudVoxel?sort=semver)](https://github.com/OpenVoxelStudios/CloudVoxel/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9876/badge)](https://www.bestpractices.dev/projects/9876)
 
