@@ -45,6 +45,12 @@ paths:
             application/octet-stream:
               schema:
                 $ref: "#/components/schemas/FileStream"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Path is not in root
           content:
@@ -60,30 +66,34 @@ paths:
     post:
       tags:
         - Files Access
-      summary: Get the file from a public link
-      description: Returns the stream of a file when the correct hash and code is provided. A body should be provided if it isn't a folder creation.
+      summary: Upload a file or create a folder
+      description: Uploads a file to the server or creates a folder depending on the query parameter. Either folder is true and there's no body, or folder is false or undefined but there must be a body.
       operationId: postDashboardByPath
       parameters:
         - name: path
           in: path
-          description: Full path to access the file.
-          example: rootfolder/subfolder/file.txt
+          description: Either full path to the folder with it's name, or the root folder of the file to upload.
+          example: rootfolder/subfolder
           required: true
           schema:
             $ref: "#/components/schemas/FilePath"
         - name: folder
           in: query
           description: Is it a folder creation?
-          example: true
+          example: false
           required: false
           schema:
             type: boolean
       requestBody:
         required: false
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              $ref: "#/components/schemas/FileStream"
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
       responses:
         "200":
           description: Successful operation
@@ -152,6 +162,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Success"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Path is not in root
           content:
@@ -184,13 +200,6 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/FilePath"
-        - name: folder
-          in: query
-          description: Is it a folder creation?
-          example: true
-          required: false
-          schema:
-            type: boolean
       responses:
         "200":
           description: Successful operation
@@ -204,6 +213,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Success"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Path is not in root
           content:
@@ -247,6 +262,7 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/FileHash"
+      security: []
       responses:
         "200":
           description: Successful operation
@@ -256,6 +272,12 @@ paths:
                 $ref: "#/components/schemas/FileStream"
         "400":
           description: No hash/code parameter provided in the URL.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -303,6 +325,12 @@ paths:
                     $ref: "#/components/schemas/FileHash"
                   code:
                     $ref: "#/components/schemas/FileCode"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Path is not in root
           content:

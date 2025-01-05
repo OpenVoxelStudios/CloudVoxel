@@ -8,14 +8,7 @@ declare global {
 
     interface CloudConfig {
         root: string;
-        login: {
-            providers: readonly ['Discord', 'GitHub'];
-            users: Record<string, {
-                displayName: string;
-                email: string;
-                avatar?: string;
-            }>
-        };
+        providers: readonly ['Discord', 'GitHub'];
         database: {
             file: string;
             globFileBlacklist: string[];

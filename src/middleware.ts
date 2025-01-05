@@ -1,7 +1,7 @@
-import { auth } from "@/auth"
+import { auth } from "@/auth";
 
 // TODO: rate limiter
-export default auth((req) => {
+export default auth(async (req) => {
     if (req.auth && req.nextUrl.pathname === "/login") {
         const newUrl = new URL("/dashboard", req.nextUrl.origin)
         return Response.redirect(newUrl)
@@ -12,7 +12,7 @@ export default auth((req) => {
         return Response.redirect(newUrl)
     }
 
-    else if (!req.auth && req.nextUrl.pathname.startsWith('/api/') && !req.nextUrl.pathname.startsWith("/api/auth") && !req.nextUrl.pathname.startsWith('/api/share/')) {
+    else if (!req.auth && !req.headers.get('Authorization') && req.nextUrl.pathname.startsWith('/api/') && !req.nextUrl.pathname.startsWith("/api/auth") && !req.nextUrl.pathname.startsWith('/api/share/')) {
         return new Response("Unauthorized", { status: 401 })
     }
 })

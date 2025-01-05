@@ -1,6 +1,7 @@
 # CloudVoxel
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9876/badge)](https://www.bestpractices.dev/projects/9876)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FOpenVoxelStudios%2FCloudVoxel.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FOpenVoxelStudios%2FCloudVoxel?ref=badge_shield&issueType=license)
 
 **A powerful, local-first solution for large file sharing**
 
