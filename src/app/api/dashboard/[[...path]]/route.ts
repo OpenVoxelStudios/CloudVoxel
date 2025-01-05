@@ -114,7 +114,7 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
         directory: 0,
         size: formatBytes(file.size),
         uploadedAt: Date.now(),
-        author: req?.auth!?.user!?.email || req.headers.get('Authorization') || 'api',
+        author: req?.auth!.user?.email || req.headers.get('Authorization') || 'api',
         hash: hash,
     }).execute();
 
@@ -181,7 +181,7 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
             name: rawPathStr.pop()!,
             path: rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/'),
             directory: 1,
-            author: req?.auth!?.user!?.email || req.headers.get('Authorization') || 'api',
+            author: req?.auth!.user?.email || req.headers.get('Authorization') || 'api',
         }).execute();
 
         return NextResponse.json({ success: true }, { status: 200 });
