@@ -4,12 +4,13 @@ import path, { basename, parse } from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
 import { apiKeysTable, eqLow, filesTable, ilike, usersTable } from "@/../data/schema";
-import { and, or, sql } from "drizzle-orm";
+import { and, isNull, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { formatBytes, sanitizedFilename, unformatBytes } from "@/lib/functions";
 import clientconfig from "@/../clientconfig";
 import { createHash } from "crypto";
-import { root } from "@/lib/api";
+import { getRootAndPermission } from "@/lib/api";
+import { root as ROOT } from "@/lib/root";
 import validateApi from "@/lib/validateApi";
 
 export interface FileElement {
@@ -44,8 +45,12 @@ function isFileElement(pathStr: string): FetchError | false | Stats {
     return stats;
 }
 
-async function lsDir(pathStr: string): Promise<FileElement[]> {
-    const results = await db.select().from(filesTable).where(eqLow(filesTable.path, pathStr == '' ? '/' : pathStr));
+async function lsDir(pathStr: string, partition: string | null): Promise<FileElement[]> {
+    const results = await db.select().from(filesTable).where(
+        and(
+            eqLow(filesTable.path, pathStr == '' ? '/' : pathStr),
+            (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+        ));
     return await Promise.all(results.map(async result => {
         const user = !result.author ? null :
             result.author == 'server' ? {
@@ -122,11 +127,13 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 }
 
 // TODO: Optimize json length by removing user duplicate
-export const GET = async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
         const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.get']);
         if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.get.' }, { status: 401 });
     };
+    const root = await getRootAndPermission(req, ROOT);
+    if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
@@ -138,7 +145,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
     if (isFile && 'error' in isFile) return NextResponse.json(isFile, { status: 404 });
 
     if (!isFile) {
-        let files = await lsDir(rawPathStr.join('/'));
+        let files = await lsDir(rawPathStr.join('/'), req.headers.get('Partition'));
         if (req.headers.get('Authorization')) {
             const hasSharePerms = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.share']);
             if (!hasSharePerms) files = files.map(f => ({ ...f, code: undefined }));
@@ -152,14 +159,14 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
         const response = new NextResponse(readStream as unknown as ReadableStream, {
             status: 200,
             headers: {
-                'Content-Type': mime.getType(pathStr) || 'application/octet-stream',
+                'Content-Type': (req.nextUrl.searchParams.get('download') == 'true' ? undefined : mime.getType(pathStr)) || 'application/octet-stream',
                 'Content-Length': isFile.size.toString(),
             }
         });
         response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=10');
         return response;
     }
-};
+});
 
 export const POST = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
@@ -167,6 +174,8 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
         if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.edit.' }, { status: 401 });
     }
     else if (!req.auth || !req.auth.user) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    const root = await getRootAndPermission(req, ROOT);
+    if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
@@ -189,11 +198,13 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
     else return handleFileUpload(req, pathStr, rawPathStr);
 });
 
-export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
         const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.edit']);
         if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.edit.' }, { status: 401 });
     };
+    const root = await getRootAndPermission(req, ROOT);
+    if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
     try {
         const renameParam = sanitizedFilename(req.headers.get('PATCH-rename') || '');
@@ -297,13 +308,15 @@ export const PATCH = async (req: RealNextRequest, { params }: { params: Promise<
         console.error(e);
         return NextResponse.json({ error: 'Something went wrong server side.' }, { status: 500 });
     }
-};
+});
 
-export const DELETE = async (req: RealNextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+export const DELETE = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
         const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.delete']);
         if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.delete.' }, { status: 401 });
     };
+    const root = await getRootAndPermission(req, ROOT);
+    if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
@@ -317,7 +330,7 @@ export const DELETE = async (req: RealNextRequest, { params }: { params: Promise
     if (!fileStats) return NextResponse.json({ error: 'File not found in database.' }, { status: 404 });
 
     if (fileStats.directory) {
-        const subFiles = await lsDir(rawPathStr.join('/'));
+        const subFiles = await lsDir(rawPathStr.join('/'), req.headers.get('Partition'));
 
         if (subFiles.length > 0) return NextResponse.json({ error: 'Cannot delete non-empty directories.' }, { status: 400 });
         else {
@@ -337,4 +350,4 @@ export const DELETE = async (req: RealNextRequest, { params }: { params: Promise
             return NextResponse.json({ error: String(error) }, { status: 500 });
         }
     }
-};
+});

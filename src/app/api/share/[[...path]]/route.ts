@@ -4,15 +4,19 @@ import path from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
 import { eqLow, filesTable } from "@/../data/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { auth } from "@/auth";
-import { root } from "@/lib/api";
+import { getRootAndPermission } from "@/lib/api";
+import { root as ROOT } from "@/lib/root";
 
 export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     const fileHash = req.nextUrl.searchParams.get('hash');
     const fileCode = req.nextUrl.searchParams.get('code');
     if (!fileHash) return NextResponse.json({ error: 'No hash parameter provided in the URL.' }, { status: 400 });
     if (!fileCode) return NextResponse.json({ error: 'No code parameter provided in the URL.' }, { status: 400 });
+
+    const root = await getRootAndPermission(req, ROOT);
+    if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
@@ -24,6 +28,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
         and(
             eqLow(filesTable.name, fileName),
             eqLow(filesTable.path, filePath),
+            (req.headers.get('Partition') && typeof ROOT !== 'string') ? eqLow(filesTable.partition, req.headers.get('Partition')!) : isNull(filesTable.partition),
             eq(filesTable.hash, fileHash),
             eq(filesTable.code, fileCode),
             eq(filesTable.directory, 0),

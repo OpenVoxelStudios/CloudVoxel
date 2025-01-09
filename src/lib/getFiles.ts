@@ -1,9 +1,12 @@
 import { FetchError, FileElement } from "@/app/api/dashboard/[[...path]]/route";
 
-export default async function getFiles(url: string): Promise<FileElement[] | FetchError> {
+export default async function getFiles(url: string, partition: string | undefined): Promise<FileElement[] | FetchError> {
     try {
         const res = await fetch(url, {
             cache: 'no-cache',
+            headers: {
+                "Partition": partition || "",
+            }
         });
 
         const json = await res.json();

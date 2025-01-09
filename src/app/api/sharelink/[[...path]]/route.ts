@@ -4,15 +4,19 @@ import { db } from "@/../data/index";
 import { eqLow, filesTable } from "@/../data/schema";
 import { and, eq } from "drizzle-orm";
 import { v7 } from 'uuid';
-import { root } from "@/lib/api";
+import { getRootAndPermission } from "@/lib/api";
+import { root as ROOT } from "@/lib/root";
 import validateApi from "@/lib/validateApi";
+import { auth } from "@/auth";
 
 
-export const GET = async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
+export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
         const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.share']);
         if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.share.' }, { status: 401 });
     };
+    const root = await getRootAndPermission(req, ROOT);
+    if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
@@ -51,4 +55,4 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ path
         hash: file.hash,
         code: code,
     }, { status: 200 });
-};
+});

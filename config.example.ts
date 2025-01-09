@@ -5,4 +5,5 @@ export default {
         file: 'file:data/db.sqlite',
         globFileBlacklist: ['.DS_Store', 'thumbs.db', 'desktop.ini']
     },
-} satisfies CloudConfig;
+    enableAPI: true
+} as CloudConfig;

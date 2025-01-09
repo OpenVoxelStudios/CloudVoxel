@@ -36,6 +36,7 @@ export default function FileItem({
     onMove,
     code,
     hash,
+    partition
 }: Omit<FileElement, 'path'> & {
     pathParts: string[],
     folders: string[],
@@ -46,6 +47,7 @@ export default function FileItem({
     setRenameTo: Dispatch<SetStateAction<{ from: string; to: string; } | null>>,
     onDelete: () => Promise<void>,
     onMove: (name: string, folder: string) => Promise<void>,
+    partition: string | undefined,
 }) {
     const { toast } = useToast();
     const [isDeleting, setIsDeleting] = useState(false);
@@ -55,6 +57,9 @@ export default function FileItem({
 
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
             method: 'DELETE',
+            headers: {
+                "Partition": partition || "",
+            }
         });
 
         if (res.status == 200) {
@@ -160,7 +165,7 @@ export default function FileItem({
                 <ContextMenuSeparator className="bg-gray-700" />
 
                 {!directory &&
-                    <Link href={`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`} target="_blank">
+                    <Link href={`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}?download=true`} target="_blank">
                         <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                             <Download className="mr-2 h-4 w-4" />
                             <span>Download</span>
@@ -209,7 +214,11 @@ export default function FileItem({
                                     to: 'Everyone', url: (hash && code) ?
                                         `${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${hash}&code=${code}`
                                         : new Promise(async resolve => {
-                                            const res = await fetch(`/api/sharelink/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`);
+                                            const res = await fetch(`/api/sharelink/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
+                                                headers: {
+                                                    "Partition": partition || "",
+                                                }
+                                            });
                                             const json = await res.json();
 
                                             if (res.status == 200) {
