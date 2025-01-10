@@ -26,6 +26,8 @@ CloudVoxel is a robust file-sharing platform that puts you in control:
 
 <video src="https://github.com/user-attachments/assets/90ebe6a5-94a9-4caf-a035-690aee5da667" alt="Share Files"></video>
 
+<video src="https://github.com/user-attachments/assets/c75dd325-8a84-4033-a2ee-7f2ebf4f05d6" alt="Command Line"></video>
+
 ## Installation
 
 First, clone the repository and prepare the configuration files:
@@ -89,7 +91,13 @@ Please read the [CONTRIBUTING.md](/CONTRIBUTING.md) guide before doing so.
 
 If you find bugs, please let us know! You can create a bug report in the [issues tab](https://github.com/OpenVoxelStudios/CloudVoxel/issues) of the repository.
 
-If you find a vulnerability, we encourage you to privately submit it in the [security tab](https://github.com/OpenVoxelStudios/CloudVoxel/security) of the repository. Thank you for keeping CloudVoxel safe!
+For security related reports, please check [SECURITY.md](/SECURITY.md).
+
+## Branch system
+
+From now on, the `main` branch will only be updated from the code on the `dev` branch on every release. So cloning the `main` branch and `git pull`ing will update to the next version.
+
+A branch will be created for specific features that will take more than a commit to complete. They will be merged to `dev` when they are completed. **The `dev` branch is not stable and is not recommended for production!**
 
 ---
 

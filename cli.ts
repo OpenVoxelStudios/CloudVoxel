@@ -326,7 +326,7 @@ async function main() {
                     },
                     new Separator(),
                     ...apikeys.map(k => ({
-                        name: k.key,
+                        name: `${k.name} (${k.key})`,
                         value: k.key,
                         description: k.permissions.split(',').join(', ') || 'No permissions'
                     })),

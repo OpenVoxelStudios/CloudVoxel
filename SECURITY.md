@@ -11,7 +11,7 @@ We take security vulnerabilities seriously and ensure prompt responses and updat
 
 ## Reporting a Vulnerability
 
-f you discover a security vulnerability in CloudVoxel, please submit it in the **Security** tab of the [GitHub Repository](https://github.com/OpenVoxelStudios/CloudVoxel/security).
+If you discover a security vulnerability in CloudVoxel, please submit it in the **Security** tab of the [GitHub Repository](https://github.com/OpenVoxelStudios/CloudVoxel/security).
 
 ### Response Time:
 
