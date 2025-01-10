@@ -5,10 +5,11 @@ info:
     Those are the OpenAPI 3.0 specifications for CloudVoxel. You can learn more about CloudVoxel at [github.com/OpenVoxelStudios/CloudVoxel](https://github.com/OpenVoxelStudios/CloudVoxel).
 
     Consider checking out CloudVoxel's Github and leaving a star if you like it!
-  termsOfService: /terms
+  # TODO: Add terms of service?
+  # termsOfService: /terms
   contact:
     email: contact@openvoxel.studio
-  version: 1.0.0-beta
+  version: 1.0.0-beta.3
 tags:
   - name: Files Access
     description: Access CloudVoxel's files API
@@ -33,6 +34,13 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/FilePath"
+        - name: Partition
+          in: header
+          description: The partition, if server enabled, to do the request to.
+          example: partition_name
+          required: false
+          schema:
+            $ref: "#/components/schemas/PartitionHeader"
       responses:
         "200":
           description: Successful operation
@@ -84,6 +92,13 @@ paths:
           required: false
           schema:
             type: boolean
+        - name: Partition
+          in: header
+          description: The partition, if server enabled, to do the request to.
+          example: partition_name
+          required: false
+          schema:
+            $ref: "#/components/schemas/PartitionHeader"
       requestBody:
         required: false
         content:
@@ -149,6 +164,13 @@ paths:
           schema:
             type: string
             pattern: '^(\.\.\/|[a-zA-Z0-9._\s-]+)$'
+        - name: Partition
+          in: header
+          description: The partition, if server enabled, to do the request to.
+          example: partition_name
+          required: false
+          schema:
+            $ref: "#/components/schemas/PartitionHeader"
       responses:
         "200":
           description: Successful operation
@@ -200,6 +222,13 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/FilePath"
+        - name: Partition
+          in: header
+          description: The partition, if server enabled, to do the request to.
+          example: partition_name
+          required: false
+          schema:
+            $ref: "#/components/schemas/PartitionHeader"
       responses:
         "200":
           description: Successful operation
@@ -262,6 +291,13 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/FileHash"
+        - name: Partition
+          in: header
+          description: The partition, if server enabled, to do the request to.
+          example: partition_name
+          required: false
+          schema:
+            $ref: "#/components/schemas/PartitionHeader"
       security: []
       responses:
         "200":
@@ -309,6 +345,13 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/FilePath"
+        - name: Partition
+          in: header
+          description: The partition, if server enabled, to do the request to.
+          example: partition_name
+          required: false
+          schema:
+            $ref: "#/components/schemas/PartitionHeader"
       responses:
         "200":
           description: Successful operation
@@ -411,6 +454,9 @@ components:
     FilePath:
       type: string
       pattern: "^[a-zA-Z0-9._\\s/-]*$"
+    PartitionHeader:
+      type: string
+      pattern: "^[a-zA-Z0-9._\\s-]*$"
     FileCode:
       type: string
       description: "The share code of the file if already generated - always null if directory"

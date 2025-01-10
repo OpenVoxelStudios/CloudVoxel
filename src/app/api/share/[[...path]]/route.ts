@@ -8,6 +8,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getRootAndPermission } from "@/lib/api";
 import { root as ROOT } from "@/lib/root";
+import { getPartition } from "@/lib/partition";
 
 export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     const fileHash = req.nextUrl.searchParams.get('hash');
@@ -24,11 +25,13 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
     const fileName = rawPathStr.pop()!;
     const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
+    const partition = getPartition(req);
+
     const file = await db.select().from(filesTable).where(
         and(
             eqLow(filesTable.name, fileName),
             eqLow(filesTable.path, filePath),
-            (req.headers.get('Partition') && typeof ROOT !== 'string') ? eqLow(filesTable.partition, req.headers.get('Partition')!) : isNull(filesTable.partition),
+            (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
             eq(filesTable.hash, fileHash),
             eq(filesTable.code, fileCode),
             eq(filesTable.directory, 0),

@@ -18,7 +18,7 @@ export default auth(async (req) => {
         return new Response("Unauthorized", { status: 401 })
     }
 
-    else if (!req.auth && (config.enableAPI && !req.headers.get('Authorization')) && req.nextUrl.pathname.startsWith('/api/') && !req.nextUrl.pathname.startsWith("/api/auth") && !req.nextUrl.pathname.startsWith('/api/share/')) {
+    else if (!req.auth && !(config.enableAPI && req.headers.get('Authorization')) && req.nextUrl.pathname.startsWith('/api/') && !req.nextUrl.pathname.startsWith("/api/auth") && !req.nextUrl.pathname.startsWith('/api/share/')) {
         return new Response("Unauthorized", { status: 401 })
     }
 })

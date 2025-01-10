@@ -4,7 +4,7 @@ import path, { basename, parse } from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
 import { apiKeysTable, eqLow, filesTable, ilike, usersTable } from "@/../data/schema";
-import { and, isNull, or, sql } from "drizzle-orm";
+import { and, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { formatBytes, sanitizedFilename, unformatBytes } from "@/lib/functions";
 import clientconfig from "@/../clientconfig";
@@ -12,6 +12,7 @@ import { createHash } from "crypto";
 import { getRootAndPermission } from "@/lib/api";
 import { root as ROOT } from "@/lib/root";
 import validateApi from "@/lib/validateApi";
+import { getPartition } from "@/lib/partition";
 
 export interface FileElement {
     name: string;
@@ -70,23 +71,30 @@ async function lsDir(pathStr: string, partition: string | null): Promise<FileEle
             } : null
         };
     })) as FileElement[];
-}
+};
 
-async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: string[]): Promise<NextResponse> {
+async function getPartitionSize(partition: string): Promise<number> {
+    const sizes = (await db.select({ size: filesTable.size }).from(filesTable).where(and(eqLow(filesTable.partition, partition), isNotNull(filesTable.size))).all()).filter(f => f.size !== null);
+    return sizes.map(s => unformatBytes(s.size)).reduce((a, b) => a + b, 0);
+};
+
+async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: string[], partition: string | null): Promise<NextResponse> {
     const formData = await req.formData();
     const files = formData.getAll('files').concat(formData.get('file') || []).filter(file => file instanceof File);
 
-    if (!files || files.length === 0) return NextResponse.json({ error: 'No files uploaded.' }, { status: 400 });
-    if (files.length > 1) return NextResponse.json({ error: 'Only one file can be uploaded at a time.' }, { status: 400 });
+    if (!files || files.length === 0) return NextResponse.json({ error: 'No files uploaded.' }, { status: 400, statusText: 'No files uploaded.' });
+    if (files.length > 1) return NextResponse.json({ error: 'Only one file can be uploaded at a time.' }, { status: 400, statusText: 'Only one file can be uploaded at a time.' });
     const file = files[0];
 
-    if (!(file instanceof File)) return NextResponse.json({ error: 'Invalid file.' }, { status: 400 });
+    if (!(file instanceof File)) return NextResponse.json({ error: 'Invalid file.' }, { status: 400, statusText: 'Invalid file.' });
 
     const fileName = sanitizedFilename(file.name);
     const fullPath = path.join(pathStr, fileName);
 
-    if (existsSync(fullPath)) return NextResponse.json({ error: 'File already exists.' }, { status: 400 });
-    if (file.size > unformatBytes(clientconfig.maxFileSize)) return NextResponse.json({ error: `File exceeds the ${clientconfig.maxFileSize} limit.` }, { status: 400 });
+    if (existsSync(fullPath)) return NextResponse.json({ error: 'File already exists.' }, { status: 400, statusText: 'File already exists.' });
+    if (file.size > unformatBytes(clientconfig.maxFileSize)) return NextResponse.json({ error: `File exceeds the ${clientconfig.maxFileSize} limit.` }, { status: 400, statusText: `File exceeds the ${clientconfig.maxFileSize} limit.` });
+    if (partition && typeof ROOT !== 'string' && ROOT[partition].maxPartitionSize && file.size + await getPartitionSize(partition) > unformatBytes(ROOT[partition].maxPartitionSize)) return NextResponse.json({ error: `File exceeds the partition's ${ROOT[partition].maxPartitionSize} size limit.` }, { status: 400, statusText: `File exceeds the partition's ${ROOT[partition].maxPartitionSize} size limit.` });
+
 
     const fileStream = file.stream();
     const writeStream = createWriteStream(fullPath);
@@ -121,6 +129,7 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
         uploadedAt: Date.now(),
         author: req?.auth!.user?.email || req.headers.get('Authorization') || 'api',
         hash: hash,
+        partition: (partition && typeof ROOT !== 'string') ? partition : undefined,
     }).execute();
 
     return NextResponse.json({ success: true }, { status: 200 });
@@ -137,6 +146,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
+    const partition = getPartition(req);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
 
@@ -145,7 +155,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     if (isFile && 'error' in isFile) return NextResponse.json(isFile, { status: 404 });
 
     if (!isFile) {
-        let files = await lsDir(rawPathStr.join('/'), req.headers.get('Partition'));
+        let files = await lsDir(rawPathStr.join('/'), partition);
         if (req.headers.get('Authorization')) {
             const hasSharePerms = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.share']);
             if (!hasSharePerms) files = files.map(f => ({ ...f, code: undefined }));
@@ -179,6 +189,7 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
+    const partition = getPartition(req);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
 
@@ -191,11 +202,12 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
             path: rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/'),
             directory: 1,
             author: req?.auth!.user?.email || req.headers.get('Authorization') || 'api',
+            partition: (partition && typeof ROOT !== 'string') ? partition : undefined,
         }).execute();
 
         return NextResponse.json({ success: true }, { status: 200 });
     }
-    else return handleFileUpload(req, pathStr, rawPathStr);
+    else return handleFileUpload(req, pathStr, rawPathStr, partition);
 });
 
 export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
@@ -221,14 +233,23 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
 
         const fileName = basename(pathStr);
         const filePath = parse(rawPathStr.join('/')).dir == '' ? '/' : parse(rawPathStr.join('/')).dir
+        const partition = getPartition(req);
 
         if (renameParam) {
-            const renameExists = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, renameParam))).limit(1))[0];
+            const renameExists = (await db.select().from(filesTable).where(and(
+                eqLow(filesTable.path, filePath),
+                eqLow(filesTable.name, renameParam),
+                (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+            )).limit(1))[0];
             if (renameExists) return NextResponse.json({ error: 'A file with this name already exists.' }, { status: 400 });
             if (existsSync(path.join(root, ...rawPathStr.slice(0, -1), renameParam))) return NextResponse.json({ error: 'File exists on the storage system. Please contact the server administrator if you believe this is a bug.' }, { status: 400 });
 
             // Rename the file itself
-            await db.update(filesTable).set({ name: renameParam }).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
+            await db.update(filesTable).set({ name: renameParam }).where(and(
+                eqLow(filesTable.path, filePath),
+                eqLow(filesTable.name, fileName),
+                (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+            )).execute();
 
             // Rename all possible subfiles
             const getFullPath = (base: string, name: string) =>
@@ -244,7 +265,8 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
                 .where(
                     or(
                         eqLow(filesTable.path, oldPath),
-                        ilike(filesTable.path, `${oldPath}/%`)
+                        ilike(filesTable.path, `${oldPath}/%`),
+                        (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
                     )
                 )
                 .execute();
@@ -262,7 +284,11 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
             else destination.pop();
 
             const newPath = destination.join('/') == '' ? '/' : destination.join('/');
-            const moveExists = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, newPath), eqLow(filesTable.name, fileName))).limit(1))[0];
+            const moveExists = (await db.select().from(filesTable).where(and(
+                eqLow(filesTable.path, newPath),
+                eqLow(filesTable.name, fileName),
+                (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+            )).limit(1))[0];
             if (moveExists) return NextResponse.json({ error: 'A file with this name exists in the destination folder.' }, { status: 400 });
 
             // Edit path in the database
@@ -278,6 +304,7 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
                 .where(and(
                     eqLow(filesTable.path, oldPath),
                     eqLow(filesTable.name, fileName),
+                    (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
                 ))
                 .execute();
 
@@ -291,7 +318,8 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
                 })
                 .where(or(
                     ilike(filesTable.path, `${old}/%`),
-                    eqLow(filesTable.path, old)
+                    eqLow(filesTable.path, old),
+                    (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
                 ))
                 .execute();
 
@@ -320,27 +348,40 @@ export const DELETE = auth(async (req: NextRequest, { params }: { params: Promis
 
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
+    const partition = getPartition(req);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
     if (existsSync(pathStr) === false) return NextResponse.json({ error: 'Path does not exist!' }, { status: 404 });
 
     const fileName = basename(pathStr);
     const filePath = parse(rawPathStr.join('/')).dir == '' ? '/' : parse(rawPathStr.join('/')).dir;
-    const fileStats = (await db.select().from(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).limit(1))[0];
+    const fileStats = (await db.select().from(filesTable).where(and(
+        eqLow(filesTable.path, filePath),
+        eqLow(filesTable.name, fileName),
+        (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+    )).limit(1))[0];
     if (!fileStats) return NextResponse.json({ error: 'File not found in database.' }, { status: 404 });
 
     if (fileStats.directory) {
-        const subFiles = await lsDir(rawPathStr.join('/'), req.headers.get('Partition'));
+        const subFiles = await lsDir(rawPathStr.join('/'), partition);
 
         if (subFiles.length > 0) return NextResponse.json({ error: 'Cannot delete non-empty directories.' }, { status: 400 });
         else {
             rmSync(pathStr, { force: true, recursive: true });
-            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
+            await db.delete(filesTable).where(and(
+                eqLow(filesTable.path, filePath),
+                eqLow(filesTable.name, fileName),
+                (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+            )).execute();
             return NextResponse.json({ success: true }, { status: 200 });
         }
     } else {
         try {
-            await db.delete(filesTable).where(and(eqLow(filesTable.path, filePath), eqLow(filesTable.name, fileName))).execute();
+            await db.delete(filesTable).where(and(
+                eqLow(filesTable.path, filePath),
+                eqLow(filesTable.name, fileName),
+                (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+            )).execute();
             rmSync(pathStr);
 
             const response = NextResponse.json({ success: true }, { status: 200 });

@@ -20,6 +20,7 @@ declare global {
             }) & {
                 displayName: string;
                 path: string;
+                maxPartitionSize?: string;
             }
         };
         providers: readonly ['Discord', 'GitHub'];

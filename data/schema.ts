@@ -19,8 +19,8 @@ export const filesTable = sqliteTable("files", {
     index('code').on(t.code),
     index('partition').on(t.partition),
 
-    unique('fullpath').on(t.path, t.name),
-    primaryKey({ name: 'fullpath', columns: [t.path, t.name] }),
+    unique('fullpath').on(t.path, t.name, t.partition),
+    primaryKey({ name: 'fullpath', columns: [t.path, t.name, t.partition] }),
 ]);
 
 export const usersTable = sqliteTable("users", {

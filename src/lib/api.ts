@@ -4,6 +4,7 @@ import CONFIG from '../../config';
 import { db } from '../../data';
 import { groupsTable, ilike } from '../../data/schema';
 import type { rootType } from './root';
+import { getPartition } from './partition';
 
 export async function getUserGroups(email: string): Promise<string[]> {
     const groups = await db.select().from(groupsTable).where(ilike(groupsTable.users, `%,${email},%`)).all();
@@ -27,7 +28,7 @@ export async function getRootAndPermission(req: NextRequest, ROOT: rootType): Pr
     if (typeof ROOT === 'string') return ROOT;
 
     let permissions = req.headers.get('Authorization') ? true : false;
-    const partition = req.headers.get('Partition');
+    const partition = getPartition(req);
     const find = Object.keys(ROOT).find(r => r == partition);
     if (!partition || !find) return false;
 
