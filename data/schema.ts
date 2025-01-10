@@ -10,15 +10,17 @@ export const filesTable = sqliteTable("files", {
     directory: int().notNull(),
     hash: text(),
     code: text(),
+    partition: text(),
 }, (t) => [
     index('name').on(t.name),
     index('path').on(t.path),
     index('author').on(t.author),
     index('hash').on(t.hash),
     index('code').on(t.code),
+    index('partition').on(t.partition),
 
-    unique('fullpath').on(t.path, t.name),
-    primaryKey({ name: 'fullpath', columns: [t.path, t.name] }),
+    unique('fullpath').on(t.path, t.name, t.partition),
+    primaryKey({ name: 'fullpath', columns: [t.path, t.name, t.partition] }),
 ]);
 
 export const usersTable = sqliteTable("users", {
@@ -37,6 +39,14 @@ export const apiKeysTable = sqliteTable("apiKeys", {
     index('key').on(lower(t.key)),
 ]);
 
+export const groupsTable = sqliteTable("groups", {
+    name: text().notNull().primaryKey(),
+    displayName: text().notNull(),
+    users: text().notNull().default(''),
+}, (t) => [
+    index('group').on(lower(t.name)),
+    index('group_users').on(lower(t.users)),
+]);
 
 export function lower(str: AnySQLiteColumn): SQL {
     return sql`lower(${str})`;

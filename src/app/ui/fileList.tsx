@@ -13,7 +13,21 @@ import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFiles }: { pathParts: string[], sortBy: typeof sortOptions[number], sortOrder: boolean, files: FileElement[] | FetchError, fetchFiles: () => Promise<void> }) {
+export default function FileList({
+    pathParts,
+    sortBy,
+    sortOrder,
+    files,
+    fetchFiles,
+    partition
+}: {
+    pathParts: string[],
+    sortBy: typeof sortOptions[number],
+    sortOrder: boolean,
+    files: FileElement[] | FetchError,
+    fetchFiles: () => Promise<void>,
+    partition: string | undefined,
+}) {
     const { toast } = useToast();
     const [shareTo, setShareTo] = useState<{ to: string; url: string | undefined | Promise<string | undefined> } | null>(null);
     const [renameTo, setRenameTo] = useState<{ from: string; to: string; } | null>(null);
@@ -24,7 +38,8 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
             method: 'PATCH',
             headers: {
-                'PATCH-move': folder
+                'PATCH-move': folder,
+                "Partition": partition || "",
             },
         });
 
@@ -156,6 +171,7 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                                     method: 'PATCH',
                                     headers: {
                                         'PATCH-rename': renameTo.to,
+                                        "Partition": partition || "",
                                     },
                                 });
 
@@ -240,6 +256,7 @@ export default function FileList({ pathParts, sortBy, sortOrder, files, fetchFil
                                             setRenameTo={setRenameTo}
                                             folders={files.filter(f => f.directory == 1 && f.name != file.name).map(f => f.name).sort((a, b) => a.localeCompare(b))}
                                             onMove={onMove}
+                                            partition={partition}
                                         />
                                     </motion.div>
                                 ))}

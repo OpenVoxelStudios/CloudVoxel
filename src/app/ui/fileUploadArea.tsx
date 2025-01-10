@@ -12,7 +12,7 @@ import clientconfig from '../../../clientconfig';
 
 registerPlugin(FilepondZipper(), FilePondPluginImageExifOrientation, FilePondPluginImagePreview, FilePondPluginFileValidateSize, FilePondPluginFileMetadata);
 
-export default function FileUploadArea({ server, fetchFiles }: { server: string, fetchFiles: () => Promise<void> }) {
+export default function FileUploadArea({ server, fetchFiles, partition }: { server: string, fetchFiles: () => Promise<void>, partition: string | undefined, }) {
     const { toast } = useToast();
 
     return (
@@ -25,6 +25,9 @@ export default function FileUploadArea({ server, fetchFiles }: { server: string,
                     url: server,
                     method: 'POST',
                     withCredentials: true,
+                    headers: {
+                        "Partition": partition || "",
+                    },
                 },
                 remove: null,
                 fetch: null,

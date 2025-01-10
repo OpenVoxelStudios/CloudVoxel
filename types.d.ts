@@ -7,12 +7,28 @@ declare global {
     }
 
     interface CloudConfig {
-        root: string;
+        /**
+         * @param string The root path of the storage directory.
+         * @param other A list of partitions with their own paths and own separate permissions.
+         */
+        root: string | {
+            [name: string]: ({
+                defaultAccess: 'public';
+            } | {
+                defaultAccess: 'private';
+                groupAccess: string[];
+            }) & {
+                displayName: string;
+                path: string;
+                maxPartitionSize?: string;
+            }
+        };
         providers: readonly ['Discord', 'GitHub'];
         database: {
             file: string;
             globFileBlacklist: string[];
-        }
+        },
+        enableAPI: boolean;
     }
 
     interface ClientConfig {

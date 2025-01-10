@@ -10,7 +10,27 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { sortOptions } from './fileListWrapper';
 
-export default function FileListHeader({ pathParts, fetchFiles, sortBy, setSortBy, sortOrder, setSortOrder }: { pathParts: string[], fetchFiles: () => Promise<void>, sortBy: typeof sortOptions[number], setSortBy: Dispatch<SetStateAction<typeof sortOptions[number]>>, sortOrder: boolean, setSortOrder: Dispatch<SetStateAction<boolean>> }) {
+export default function FileListHeader({
+    pathParts,
+    fetchFiles,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    partitions,
+    partition,
+    setPartition,
+}: {
+    pathParts: string[],
+    fetchFiles: () => Promise<void>,
+    sortBy: typeof sortOptions[number],
+    setSortBy: Dispatch<SetStateAction<typeof sortOptions[number]>>,
+    sortOrder: boolean,
+    setSortOrder: Dispatch<SetStateAction<boolean>>,
+    partitions: { name: string; displayName: string }[] | undefined,
+    partition: string | undefined,
+    setPartition: Dispatch<SetStateAction<string | undefined>>,
+}) {
     const { toast } = useToast();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -20,6 +40,9 @@ export default function FileListHeader({ pathParts, fetchFiles, sortBy, setSortB
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}?folder=true`, {
             method: 'POST',
             cache: 'no-cache',
+            headers: {
+                "Partition": partition || "",
+            }
         });
 
         if (res.status == 200) {
@@ -44,7 +67,21 @@ export default function FileListHeader({ pathParts, fetchFiles, sortBy, setSortB
 
     return (
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-4">
-            <h2 className="text-xl font-semibold text-white">Your Files</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                <h2 className="text-xl font-semibold text-white">Your Files</h2>
+                {partitions &&
+                    <Select defaultValue={partition} onValueChange={setPartition}>
+                        <SelectTrigger className="w-full sm:w-[180px] bg-gray-800 text-white border-gray-700 focus:ring-0 focus:ring-offset-0">
+                            <SelectValue placeholder="Select a Partition" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                            {partitions.map(option =>
+                                <SelectItem key={option.name} value={option.name} className="text-white focus:bg-gray-700 focus:text-white">{option.displayName}</SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
+                }
+            </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Select defaultValue={sortBy} onValueChange={(value: string) => setSortBy(value as (typeof sortOptions)[number])}>

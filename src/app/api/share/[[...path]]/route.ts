@@ -4,9 +4,11 @@ import path from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
 import { eqLow, filesTable } from "@/../data/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { auth } from "@/auth";
-import { root } from "@/lib/api";
+import { getRootAndPermission } from "@/lib/api";
+import { root as ROOT } from "@/lib/root";
+import { getPartition } from "@/lib/partition";
 
 export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     const fileHash = req.nextUrl.searchParams.get('hash');
@@ -14,16 +16,22 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     if (!fileHash) return NextResponse.json({ error: 'No hash parameter provided in the URL.' }, { status: 400 });
     if (!fileCode) return NextResponse.json({ error: 'No code parameter provided in the URL.' }, { status: 400 });
 
+    const root = await getRootAndPermission(req, ROOT);
+    if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+
     const rawPathStr = (await params).path?.map((value) => decodeURIComponent(value).split('/')).flat() || [];
     const pathStr = path.join(root, ...rawPathStr);
 
     if (!pathStr.startsWith(root)) return NextResponse.json({ error: 'Path is not in root.' }, { status: 403 });
     const fileName = rawPathStr.pop()!;
     const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
+    const partition = getPartition(req);
+
     const file = await db.select().from(filesTable).where(
         and(
             eqLow(filesTable.name, fileName),
             eqLow(filesTable.path, filePath),
+            (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
             eq(filesTable.hash, fileHash),
             eq(filesTable.code, fileCode),
             eq(filesTable.directory, 0),

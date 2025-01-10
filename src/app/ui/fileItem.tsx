@@ -36,6 +36,7 @@ export default function FileItem({
     onMove,
     code,
     hash,
+    partition
 }: Omit<FileElement, 'path'> & {
     pathParts: string[],
     folders: string[],
@@ -46,6 +47,7 @@ export default function FileItem({
     setRenameTo: Dispatch<SetStateAction<{ from: string; to: string; } | null>>,
     onDelete: () => Promise<void>,
     onMove: (name: string, folder: string) => Promise<void>,
+    partition: string | undefined,
 }) {
     const { toast } = useToast();
     const [isDeleting, setIsDeleting] = useState(false);
@@ -55,6 +57,9 @@ export default function FileItem({
 
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
             method: 'DELETE',
+            headers: {
+                "Partition": partition || "",
+            }
         });
 
         if (res.status == 200) {
@@ -77,7 +82,7 @@ export default function FileItem({
         <ContextMenu>
             <ContextMenuTrigger>
                 <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700 hover:bg-gray-750 transition-colors duration-150 ease-in-out">
-                    <Link href={`${directory ? '/dashboard' : '/api/dashboard'}${pathParts.length == 0 ? '' : '/'}${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`} target={directory ? '_self' : '_blank'} className="flex-1">
+                    <Link href={`${directory ? '/dashboard' : '/api/dashboard'}${pathParts.length == 0 ? '' : '/'}${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}${(!directory && partition) ? `?partition=${encodeURIComponent(partition)}` : ''}`} target={directory ? '_self' : '_blank'} className="flex-1">
                         <div className="flex items-center space-x-4 cursor-pointer">
                             <div className="bg-blue-900 p-2 rounded-lg">
                                 {directory ? <Folder className="w-6 h-6 text-blue-400" /> : <File className="w-6 h-6 text-blue-400" />}
@@ -160,7 +165,7 @@ export default function FileItem({
                 <ContextMenuSeparator className="bg-gray-700" />
 
                 {!directory &&
-                    <Link href={`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`} target="_blank">
+                    <Link href={`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}?download=true${partition ? `&partition=${encodeURIComponent(partition)}` : ''}`} target="_blank">
                         <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                             <Download className="mr-2 h-4 w-4" />
                             <span>Download</span>
@@ -209,7 +214,11 @@ export default function FileItem({
                                     to: 'Everyone', url: (hash && code) ?
                                         `${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${hash}&code=${code}`
                                         : new Promise(async resolve => {
-                                            const res = await fetch(`/api/sharelink/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`);
+                                            const res = await fetch(`/api/sharelink/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
+                                                headers: {
+                                                    "Partition": partition || "",
+                                                }
+                                            });
                                             const json = await res.json();
 
                                             if (res.status == 200) {
@@ -229,7 +238,7 @@ export default function FileItem({
                                 <Globe className="mr-2 h-4 w-4" />
                                 <span>Everyone</span>
                             </ContextMenuItem>
-                            <ContextMenuItem onClick={() => setShareTo({ to: 'Logged-in users', url: `${location.origin}/api/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}` })} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
+                            <ContextMenuItem onClick={() => setShareTo({ to: 'Logged-in users', url: `${location.origin}/api/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}${partition ? `?partition=${encodeURIComponent(partition)}` : ''}` })} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                                 <Users className="mr-2 h-4 w-4" />
                                 <span>Logged-in Users</span>
                             </ContextMenuItem>
