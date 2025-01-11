@@ -197,7 +197,11 @@ export default function FileList({
                 </DialogContent>
             </Dialog >
 
-            {files && (
+            {!files ? (
+                <div className="flex items-center justify-center p-4 bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
+                    <h3 className="text-sm font-bold text-gray-100">Loading...</h3>
+                </div>
+            ) : (
                 'error' in files ? (
                     <div className="flex items-center justify-center p-4 bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
                         <h3 className="text-sm font-bold text-gray-100">{files.error}</h3>

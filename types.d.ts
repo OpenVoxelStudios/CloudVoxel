@@ -7,7 +7,7 @@ declare global {
     }
 
     interface Session extends DefaultSession {
-        hasPasskey: boolean;
+        hasPasskey?: boolean;
     }
 
     interface CloudConfig {
@@ -27,7 +27,7 @@ declare global {
                 maxPartitionSize?: string;
             }
         };
-        providers: ("Discord" | "GitHub")[];
+        providers: ("Discord" | "GitHub" | "GitLab" | "Google" | "Osu!" | "Slack" | "Twitch" | "Reddit")[];
         database: {
             file: string;
             globFileBlacklist: string[];

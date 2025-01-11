@@ -1,5 +1,5 @@
 import { createReadStream, createWriteStream, existsSync, mkdirSync, renameSync, rmSync, Stats, statSync } from "fs";
-import { NextRequest as RealNextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import path, { basename, parse } from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";

@@ -1,6 +1,6 @@
 'use client';
 
-import { Dispatch, SetStateAction, useState } from 'react'
+import { Dispatch, SetStateAction, useCallback, useState } from 'react'
 import { Download, Edit, File, Folder, FolderInput, FolderOutput, Globe, Share2, Trash2, Users } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
@@ -23,7 +23,9 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { useMemo } from 'react'
 import { DebouncedFunc } from 'lodash';
 
-export default function FileItem({
+import React from 'react';
+
+const MemoizedFileItem = React.memo(function FileItem({
     name,
     size,
     uploadedAt,
@@ -53,7 +55,7 @@ export default function FileItem({
     const { toast } = useToast();
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleDelete = async () => {
+    const handleDelete = useCallback(async () => {
         setIsDeleting(true)
 
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
@@ -77,7 +79,7 @@ export default function FileItem({
             variant: 'destructive',
         })
         setIsDeleting(false);
-    };
+    }, [name, onDelete, partition, pathParts, toast]);
 
     const FolderIcon = useMemo(() => {
         return directory ? <Folder className="w-6 h-6 text-blue-400" /> : <File className="w-6 h-6 text-blue-400" />;
@@ -196,7 +198,7 @@ export default function FileItem({
                 </ContextMenuSubContent>
             </ContextMenuSub>
         );
-    }, [directory, hash, code, location.origin, pathParts, name, partition, setShareTo, toast, moveFolder]);
+    }, [directory, hash, code, pathParts, name, partition, setShareTo, toast, moveFolder]);
 
     return (
         <ContextMenu>
@@ -269,4 +271,6 @@ export default function FileItem({
             </ContextMenuContent>
         </ContextMenu>
     )
-}
+});
+
+export default MemoizedFileItem;

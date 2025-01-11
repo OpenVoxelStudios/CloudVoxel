@@ -2,7 +2,7 @@
 
 import { providerMap } from '@/lib/providers';
 import { Button } from '@/components/ui/button'
-import { SiDiscord, SiGithub } from '@icons-pack/react-simple-icons'
+import { SiDiscord, SiGithub, SiGitlab, SiGoogle, SiOsu, SiReddit, SiSlack, SiTwitch } from '@icons-pack/react-simple-icons'
 import { AuthError } from 'next-auth';
 import { signIn } from 'next-auth/react';
 import { redirect } from 'next/navigation';
@@ -15,32 +15,36 @@ export default function LoginForm() {
         <div className="lg:flex lg:space-x-8">
             <div className="mt-6 lg:mt-0 lg:flex-1">
                 {providerMap.some(p => p.id == 'passkey') && (
-                    <form
-                        className={`my-3 space-y-4`}
-                        action={async () => {
-                            try {
-                                passkeySignIn("passkey", {
-                                    redirectTo: `${location.origin}/dashboard`,
-                                })
-                            } catch (error) {
-                                if (error instanceof AuthError)
-                                    return redirect(`${location.origin}/login?error=${error.type}`)
-                                throw error
-                            }
-                        }}
-                    >
-                        <Button
-                            type='submit'
-                            variant="outline"
-                            className="w-full border-gray-700 bg-gray-800 text-gray-100 hover:bg-gray-600 hover:text-gray-50"
+                    <>
+                        <form
+                            className={`my-3 space-y-4`}
+                            action={async () => {
+                                try {
+                                    passkeySignIn("passkey", {
+                                        redirectTo: `${location.origin}/dashboard`,
+                                    })
+                                } catch (error) {
+                                    if (error instanceof AuthError)
+                                        return redirect(`${location.origin}/login?error=${error.type}`)
+                                    throw error
+                                }
+                            }}
                         >
-                            <KeyRound className="mr-2 h-4 w-4" />
-                            Sign in with Passkey
-                        </Button>
-                    </form>
+                            <Button
+                                type='submit'
+                                variant="outline"
+                                className="w-full border-gray-700 bg-gray-800 text-gray-100 hover:bg-gray-600 hover:text-gray-50"
+                            >
+                                <KeyRound className="mr-2 h-4 w-4" />
+                                Sign in with Passkey
+                            </Button>
+                        </form>
+
+                        <hr className="my-6 border-gray-700" />
+                    </>
                 )}
 
-                {Object.values(providerMap).filter(p => p.id != 'passkey').map((provider, i) => (
+                {Object.values(providerMap).filter(p => p.id != 'passkey' && p.id != 'credentials').map((provider, i) => (
                     <motion.div
                         key={`provider-${i}`}
                         initial={{ opacity: 0, y: 20 }}
@@ -75,8 +79,14 @@ export default function LoginForm() {
                             >
                                 {(() => {
                                     const icons = {
+                                        discord: <SiDiscord className="mr-2 h-4 w-4" />,
                                         github: <SiGithub className="mr-2 h-4 w-4" />,
-                                        discord: <SiDiscord className="mr-2 h-4 w-4" />
+                                        gitlab: <SiGitlab className="mr-2 h-4 w-4" />,
+                                        google: <SiGoogle className="mr-2 h-4 w-4" />,
+                                        osu: <SiOsu className="mr-2 h-4 w-4" />,
+                                        slack: <SiSlack className="mr-2 h-4 w-4" />,
+                                        twitch: <SiTwitch className="mr-2 h-4 w-4" />,
+                                        reddit: <SiReddit className="mr-2 h-4 w-4" />,
                                     };
                                     return icons[provider.id.toLowerCase() as keyof typeof icons] || null;
                                 })()}

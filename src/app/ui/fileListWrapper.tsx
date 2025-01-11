@@ -2,7 +2,6 @@
 
 import FileListHeader from "./fileListHeader";
 import FileUploadArea from "./fileUploadArea";
-import FileItemSkeleton from './fileItemSkeleton';
 import type { FetchError, FileElement } from "../api/dashboard/[[...path]]/route";
 import FileList from "./fileList";
 import getFiles from "@/lib/getFiles";
@@ -16,7 +15,6 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
 
     const [partitions, setPartitions] = useState<{ name: string; displayName: string }[] | undefined>(undefined);
     const [files, setFiles] = useState(initialFiles);
-    const [isLoading, setIsLoading] = useState(false);
     const [sortOrder, setSortOrder] = useState<boolean>(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('preferences.sortOrder') ? localStorage.getItem('preferences.sortOrder') === 'true' : true;
@@ -38,22 +36,34 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
         return undefined;
     });
 
-    const fetchFiles = useCallback(debounce(async () => {
-        setIsLoading(true);
-        try {
-            const fetchedFiles = await getFiles(`/api/dashboard/${memoizedPathParts.map(encodeURIComponent).join('/')}`, partition);
-            setFiles(fetchedFiles);
-        } catch (error) {
-            console.error('Error fetching files:', error);
-            setFiles(null);
-        } finally {
-            setIsLoading(false);
-        }
-    }, 300), [memoizedPathParts, partition]);
+    const debouncedFetch = useCallback(
+        async () => {
+            try {
+                const fetchedFiles = await getFiles(
+                    `/api/dashboard/${memoizedPathParts.map(encodeURIComponent).join('/')}`,
+                    partition
+                );
+                setFiles(fetchedFiles);
+            } catch (error) {
+                console.error('Error fetching files:', error);
+                setFiles(null);
+            }
+        },
+        [memoizedPathParts, partition, setFiles]
+    );
 
+    // Create stable debounced version
+    const fetchFiles = useMemo(
+        () => debounce(debouncedFetch, 300),
+        [debouncedFetch]
+    );
+
+    // Clean up
     useEffect(() => {
-        fetchFiles();
-    }, [fetchFiles, partition]);
+        return () => {
+            fetchFiles.cancel();
+        };
+    }, [fetchFiles]);
 
     const debouncedSetSortBy = useMemo(() => debounce((value: typeof sortOptions[number]) => {
         if (typeof window !== 'undefined') {
@@ -104,6 +114,14 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
         }
     }, [partitions, partition]);
 
+    const memoizedFileUploadArea = useMemo(() => (
+        <FileUploadArea
+            server={`/api/dashboard/${memoizedPathParts.map(encodeURIComponent).join('/')}`}
+            fetchFiles={fetchFiles}
+            partition={partition}
+        />
+    ), [memoizedPathParts, fetchFiles, partition]);
+
     return (
         <>
             <FileListHeader
@@ -118,26 +136,15 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
                 setPartition={setPartition}
             />
             <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
-                <FileUploadArea
-                    server={`/api/dashboard/${memoizedPathParts.map(path => encodeURIComponent(path)).join('/')}`}
+                {memoizedFileUploadArea}
+                <FileList
+                    files={files}
+                    pathParts={memoizedPathParts}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
                     fetchFiles={fetchFiles}
                     partition={partition}
                 />
-                {isLoading ? (
-                    <>
-                        <FileItemSkeleton />
-                        <FileItemSkeleton />
-                    </>
-                ) : (
-                    <FileList
-                        files={files}
-                        pathParts={memoizedPathParts}
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
-                        fetchFiles={fetchFiles}
-                        partition={partition}
-                    />
-                )}
             </div>
         </>
     )

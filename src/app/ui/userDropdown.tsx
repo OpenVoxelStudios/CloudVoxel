@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { signIn as passkeySignIn } from "next-auth/webauthn";
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function UserDropdown({ session }: { session: Session }) {
@@ -21,8 +21,9 @@ export default function UserDropdown({ session }: { session: Session }) {
     const [hasPasskey, setHasPasskey] = useState(session.hasPasskey);
     const [deletePasskeyDialog, setDeletePasskeyDialog] = useState(false);
 
-    return (
-        <>
+    const AlertPasskey = useMemo(() => {
+        if (hasPasskey === undefined) return null;
+        return (
             <AlertDialog open={deletePasskeyDialog} onOpenChange={setDeletePasskeyDialog}>
                 <AlertDialogContent className="bg-gray-800 border border-gray-700">
                     <AlertDialogHeader>
@@ -43,7 +44,7 @@ export default function UserDropdown({ session }: { session: Session }) {
 
                                 if (res.status == 200) {
                                     toast({
-                                        title: `Successfully removed passkey.`,
+                                        title: `Successfully removed Passkey from your account.`,
                                     });
 
                                     setHasPasskey(false);
@@ -62,14 +63,19 @@ export default function UserDropdown({ session }: { session: Session }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+        );
+    }, [deletePasskeyDialog, hasPasskey, toast]);
 
+    return (
+        <>
+            {AlertPasskey}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="ghost"
                         className="h-12 px-2 flex items-center gap-2 hover:bg-gray-800 transition-colors nofocus"
                     >
-                        <UserAvatar src={session.user?.image} size={32} className="rounded-full" />
+                        <UserAvatar src={session.user?.image} name={session.user?.name || ''} />
                         <span className="font-medium text-sm hidden md:inline-block text-secondary-foreground">
                             {session.user?.name}
                         </span>
@@ -80,7 +86,7 @@ export default function UserDropdown({ session }: { session: Session }) {
                 <DropdownMenuContent align="end" className="w-64 p-2 bg-background border border-border shadow-lg rounded-lg">
                     <div className="flex flex-col space-y-1 p-2 mb-2 bg-accent/10 rounded-md">
                         <div className="flex items-center gap-2">
-                            <UserAvatar src={session.user?.image} size={40} className="rounded-full" />
+                            <UserAvatar src={session.user?.image} name={session.user?.name || ''} />
                             <div className="flex flex-col">
                                 <span className="font-medium text-secondary-foreground">{session.user?.name}</span>
                                 <span className="text-xs text-muted-foreground">{session.user?.email}</span>
@@ -88,22 +94,29 @@ export default function UserDropdown({ session }: { session: Session }) {
                         </div>
                     </div>
 
-                    {hasPasskey ? (
-                        <DropdownMenuItem
-                            className="cursor-pointer text-secondary-foreground hover:bg-red-600/10 hover:text-red-600 focus:bg-red-600/10 focus:text-red-600 transition-colors rounded-md"
-                            onClick={() => setDeletePasskeyDialog(true)}
-                        >
-                            <KeyRound className="mr-2 h-4 w-4" />
-                            <span>Remove Passkey</span>
-                        </DropdownMenuItem>
-                    ) : (
-                        <DropdownMenuItem
-                            className="cursor-pointer text-secondary-foreground transition-colors rounded-md"
-                            onClick={() => passkeySignIn("passkey", { action: "register" }).then(() => setHasPasskey(true))}
-                        >
-                            <KeyRound className="mr-2 h-4 w-4" />
-                            <span>Register new Passkey</span>
-                        </DropdownMenuItem>
+                    {hasPasskey === undefined ? null : (
+                        hasPasskey ? (
+                            <DropdownMenuItem
+                                className="cursor-pointer text-secondary-foreground hover:bg-red-600/10 hover:text-red-600 focus:bg-red-600/10 focus:text-red-600 transition-colors rounded-md"
+                                onClick={() => setDeletePasskeyDialog(true)}
+                            >
+                                <KeyRound className="mr-2 h-4 w-4" />
+                                <span>Remove Passkey</span>
+                            </DropdownMenuItem>
+                        ) : (
+                            <DropdownMenuItem
+                                className="cursor-pointer text-secondary-foreground transition-colors rounded-md"
+                                onClick={() => passkeySignIn("passkey", { action: "register" }).then(() => {
+                                    setHasPasskey(true)
+                                    toast({
+                                        title: `Successfully added a Passkey to your account.`,
+                                    });
+                                })}
+                            >
+                                <KeyRound className="mr-2 h-4 w-4" />
+                                <span>Register new Passkey</span>
+                            </DropdownMenuItem>
+                        )
                     )}
 
                     <DropdownMenuSeparator className="bg-border" />

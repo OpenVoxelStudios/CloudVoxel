@@ -49,6 +49,7 @@ export const usersTable = sqliteTable("users", {
     name: text().notNull().unique(),
     image: text(),
     emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
+    password: text(),
 }, (t) => [
     index('email').on(lower(t.email)),
 ]);

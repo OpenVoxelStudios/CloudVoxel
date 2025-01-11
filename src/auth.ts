@@ -56,6 +56,7 @@ export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
             return true;
         },
         async session({ session }) {
+            if (!config.enableExperimentalPasskeys) return session;
             const hasPasskey = await db.select().from(authenticatorsTable).where(eqLow(authenticatorsTable.userId, session.userId)).get();
 
             const newSession = {
