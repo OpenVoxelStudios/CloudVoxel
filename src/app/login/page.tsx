@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Metadata } from 'next';
 import clientconfig from '@/../clientconfig';
 import RootLayout from '../dashboard/layout';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
     title: `Login - ${clientconfig.websiteName}`,
@@ -14,7 +16,10 @@ export const metadata: Metadata = {
     },
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+    const session = await auth();
+    if (session) return redirect(`${clientconfig.websiteURL}/dashboard`);
+
     return (
         <RootLayout>
             <div className="flex min-h-screen items-center justify-center bg-gray-900 px-4 py-12 sm:px-6 lg:px-8">

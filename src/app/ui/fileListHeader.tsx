@@ -9,6 +9,7 @@ import { ChevronUp } from 'lucide-react';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { sortOptions } from './fileListWrapper';
+import { DebouncedFunc } from 'lodash';
 
 export default function FileListHeader({
     pathParts,
@@ -22,7 +23,7 @@ export default function FileListHeader({
     setPartition,
 }: {
     pathParts: string[],
-    fetchFiles: () => Promise<void>,
+    fetchFiles: DebouncedFunc<() => Promise<void>>,
     sortBy: typeof sortOptions[number],
     setSortBy: Dispatch<SetStateAction<typeof sortOptions[number]>>,
     sortOrder: boolean,

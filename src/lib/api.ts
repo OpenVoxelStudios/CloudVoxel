@@ -25,6 +25,7 @@ export async function getPartitions(email: string): Promise<{ name: string; disp
 }
 
 export async function getRootAndPermission(req: NextRequest, ROOT: rootType): Promise<string | false> {
+    if (!req.auth) return false;
     if (typeof ROOT === 'string') return ROOT;
 
     let permissions = req.headers.get('Authorization') ? true : false;

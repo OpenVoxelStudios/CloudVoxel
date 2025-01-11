@@ -149,10 +149,10 @@ async function main() {
                 if (action == 'exit') return main();
                 else if (action == 'get') {
                     const foundUser = users.find(u => u.email === user)!;
-                    const table: { [email: string]: { name: string; avatar: string | null } } = {};
+                    const table: { [email: string]: { name: string; image: string | null } } = {};
                     table[user] = {
                         name: foundUser.name,
-                        avatar: foundUser.avatar,
+                        image: foundUser.image,
                     };
 
                     console.table(table);

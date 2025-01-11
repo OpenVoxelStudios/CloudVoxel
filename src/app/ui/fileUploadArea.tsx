@@ -9,10 +9,11 @@ import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import clientconfig from '../../../clientconfig';
+import { DebouncedFunc } from 'lodash';
 
 registerPlugin(FilepondZipper(), FilePondPluginImageExifOrientation, FilePondPluginImagePreview, FilePondPluginFileValidateSize, FilePondPluginFileMetadata);
 
-export default function FileUploadArea({ server, fetchFiles, partition }: { server: string, fetchFiles: () => Promise<void>, partition: string | undefined, }) {
+export default function FileUploadArea({ server, fetchFiles, partition }: { server: string, fetchFiles: DebouncedFunc<() => Promise<void>>, partition: string | undefined, }) {
     const { toast } = useToast();
 
     return (

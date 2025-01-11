@@ -1,12 +1,10 @@
-import NextAuth, { Session } from "next-auth"
-import type { Provider } from "next-auth/providers"
+import NextAuth from "next-auth"
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
 
-import GitHub from "next-auth/providers/github"
-import Discord from "next-auth/providers/discord"
-import config from '@/../config';
-import clientconfig from "../clientconfig";
-
-import { eqLow, usersTable } from "@/../data/schema";
+import { accountsTable, authenticatorsTable, eqLow, sessionsTable, usersTable } from "@/../data/schema";
+import { db } from '@/../data/index'
+import { providers } from "./lib/providers";
+import config from "../config";
 
 /*
 (config.login?.credentials ? [Credentials({
@@ -30,31 +28,21 @@ import { eqLow, usersTable } from "@/../data/schema";
 })] : [] as Provider[]).concat((
  */
 
-const providers: Provider[] = ([
-    ['Discord', Discord({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
-    ['GitHub', GitHub({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
-] as [string, Provider][]).filter(provider => (config.providers as unknown as string[]).includes(provider[0])).map(provider => provider[1]);
-
-export const providerMap = providers
-    .map((provider) => {
-        if (typeof provider === "function") {
-            const providerData = provider()
-            return { id: providerData.id, name: providerData.name }
-        } else {
-            return { id: provider.id, name: provider.name }
-        }
-    })
-    .filter((provider) => provider.id !== "credentials")
-
 export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
+    adapter: DrizzleAdapter(db, {
+        usersTable: usersTable,
+        accountsTable: accountsTable,
+        sessionsTable: sessionsTable,
+        authenticatorsTable: authenticatorsTable,
+    }),
+    experimental: { enableWebAuthn: config.enableExperimentalPasskeys },
     trustHost: true,
-    providers,
+    providers: providers,
     pages: {
         signIn: "/login",
     },
     callbacks: {
         async signIn(auth) {
-            const { db } = await import("@/../data/index");
             console.log('Loggin try in user', auth?.user?.name);
 
             const user = auth.user.email ? await db.select().from(usersTable).where(eqLow(usersTable.email, auth.user.email)).get() : undefined;
@@ -62,11 +50,21 @@ export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
             if (!auth.user.email || !user) return false;
 
             if (auth.user.image) await db.update(usersTable).set({
-                avatar: auth.user.image,
+                image: auth.user.image,
             }).where(eqLow(usersTable.email, auth.user.email)).execute();
 
             return true;
         },
+        async session({ session }) {
+            const hasPasskey = await db.select().from(authenticatorsTable).where(eqLow(authenticatorsTable.userId, session.userId)).get();
+
+            const newSession = {
+                ...session,
+                hasPasskey: !!hasPasskey,
+            } as Session;
+
+            return newSession;
+        }
     },
 })
 

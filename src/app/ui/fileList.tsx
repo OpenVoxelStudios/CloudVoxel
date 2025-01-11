@@ -12,6 +12,7 @@ import { Suspense, useState } from "react";
 import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { DebouncedFunc } from "lodash";
 
 export default function FileList({
     pathParts,
@@ -24,15 +25,15 @@ export default function FileList({
     pathParts: string[],
     sortBy: typeof sortOptions[number],
     sortOrder: boolean,
-    files: FileElement[] | FetchError,
-    fetchFiles: () => Promise<void>,
+    files: FileElement[] | FetchError | null,
+    fetchFiles: DebouncedFunc<() => Promise<void>>,
     partition: string | undefined,
 }) {
     const { toast } = useToast();
     const [shareTo, setShareTo] = useState<{ to: string; url: string | undefined | Promise<string | undefined> } | null>(null);
     const [renameTo, setRenameTo] = useState<{ from: string; to: string; } | null>(null);
 
-    const onMove = async (name: string, folder: string) => {
+    const moveFolder = async (name: string, folder: string) => {
         console.log(`Move to ${folder}`);
 
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
@@ -196,7 +197,7 @@ export default function FileList({
                 </DialogContent>
             </Dialog >
 
-            {(
+            {files && (
                 'error' in files ? (
                     <div className="flex items-center justify-center p-4 bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
                         <h3 className="text-sm font-bold text-gray-100">{files.error}</h3>
@@ -207,7 +208,7 @@ export default function FileList({
                     </div>
                 ) :
                     (
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence>
                             <motion.div
                                 key={`${sortBy}-${sortOrder}`}
                                 layout
@@ -255,7 +256,7 @@ export default function FileList({
                                             setShareTo={setShareTo}
                                             setRenameTo={setRenameTo}
                                             folders={files.filter(f => f.directory == 1 && f.name != file.name).map(f => f.name).sort((a, b) => a.localeCompare(b))}
-                                            onMove={onMove}
+                                            moveFolder={moveFolder}
                                             partition={partition}
                                         />
                                     </motion.div>
