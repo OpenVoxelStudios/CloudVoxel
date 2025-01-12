@@ -16,7 +16,7 @@ export default function rateLimit(db: LibSQLDatabase<Record<string, never>> & { 
     );
 
     return new Promise(async resolve => {
-        let get = await db.select().from(rateLimitTable).where(whereCondition).get() || {
+        const get = await db.select().from(rateLimitTable).where(whereCondition).get() || {
             ip, key,
             limit: limit,
             reset: Date.now() + duration * 1000,

@@ -4,7 +4,7 @@ import { providerMap } from '@/lib/providers';
 import { Button } from '@/components/ui/button'
 import { SiDiscord, SiGithub, SiGitlab, SiGoogle, SiOsu, SiReddit, SiSlack, SiTwitch } from '@icons-pack/react-simple-icons'
 import { signIn } from 'next-auth/react';
-import { redirect, useSearchParams } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { motion } from "motion/react"
 import { signIn as passkeySignIn } from "next-auth/webauthn"
 import { KeyRound } from 'lucide-react';

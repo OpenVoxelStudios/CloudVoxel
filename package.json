@@ -5,14 +5,12 @@
   "scripts": {
     "dev": "npx next dev",
     "build": "npx next build",
-    "test": "NODE_ENV=\"test\" npx next start",
     "start": "npx next start",
     "lint": "npx next lint",
-    "init": "npx auth secret",
     "db.generate": "drizzle-kit generate",
     "db.migrate": "drizzle-kit migrate",
     "db.push": "drizzle-kit push",
-    "db.sync": "bun ./data/sync.ts"
+    "cli": "bun cli.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",

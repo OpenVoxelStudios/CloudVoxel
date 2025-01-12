@@ -22,7 +22,7 @@ import { RateLimitedError } from "./error";
 
 const ProviderConfig = { redirectProxyUrl: `${clientconfig.websiteURL}/api/auth`, allowDangerousEmailAccountLinking: true };
 
-const parseIp = (req: Request) => req.headers.get('x-forwarded-for')?.split(',').shift() || '::1';
+const parseIp = (req: Request) => req.headers.get('x-forwarded-for') || '::1';
 
 export const providers: Provider[] = ([
     ['Discord', Discord(ProviderConfig)],
