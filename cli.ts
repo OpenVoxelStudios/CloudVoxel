@@ -116,7 +116,9 @@ async function main() {
                         return true
                     },
                 });
-                const { hash, salt } = await hashPassword(await password({ message: 'Enter new user password', mask: '•', validate: (value) => (value.length >= 8 && value.length <= 32) }));
+
+                const rawPassword = await confirm({ message: 'Would you like to add a password for this user', default: false }) ? await password({ message: 'Enter new user password', mask: '•', validate: (value) => (value.length >= 8 && value.length <= 32) }) : undefined;
+                const { hash, salt } = rawPassword ? await hashPassword(rawPassword) : { hash: undefined, salt: undefined };
 
                 process.stdout.write('Creating user...');
                 await db.insert(usersTable).values({ email, name, password: hash, salt: salt }).execute();
