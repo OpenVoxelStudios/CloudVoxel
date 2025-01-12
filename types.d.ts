@@ -1,9 +1,13 @@
 import { NextRequest as DefaultNextRequest } from 'next/server'
-import { Session } from 'next-auth'
+import { DefaultSession } from 'next-auth'
 
 declare global {
     interface NextRequest extends DefaultNextRequest {
         auth: Session | null
+    }
+
+    interface Session extends DefaultSession {
+        hasPasskey?: boolean;
     }
 
     interface CloudConfig {
@@ -23,12 +27,14 @@ declare global {
                 maxPartitionSize?: string;
             }
         };
-        providers: readonly ['Discord', 'GitHub'];
+        providers: ("Discord" | "GitHub" | "GitLab" | "Google" | "Osu!" | "Slack" | "Twitch" | "Reddit")[];
         database: {
             file: string;
             globFileBlacklist: string[];
         },
         enableAPI: boolean;
+        enableExperimentalPasskeys?: boolean;
+        credentialLogin: boolean;
     }
 
     interface ClientConfig {

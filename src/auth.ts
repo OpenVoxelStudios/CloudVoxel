@@ -1,71 +1,63 @@
-import NextAuth, { Session } from "next-auth"
-import type { Provider } from "next-auth/providers"
+import NextAuth from "next-auth"
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
 
-import GitHub from "next-auth/providers/github"
-import Discord from "next-auth/providers/discord"
-import config from '@/../config';
-import clientconfig from "../clientconfig";
-
-import { eqLow, usersTable } from "@/../data/schema";
-
-/*
-(config.login?.credentials ? [Credentials({
-    credentials: {
-        username: {},
-        password: {},
-    },
-    authorize: async (credentials) => {
-        console.log(credentials)
-        const parsedCredentials = signInSchema.safeParse(credentials);
-        
-        if (parsedCredentials.success) {
-            const { username, password } = parsedCredentials.data;
-
-            console.log(username, password);
-        }
-
-        return { name: 'yes', email: 'yes@yes.yes', id: 'idk' };
-        return null;
-    },
-})] : [] as Provider[]).concat((
- */
-
-const providers: Provider[] = ([
-    ['Discord', Discord({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
-    ['GitHub', GitHub({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
-] as [string, Provider][]).filter(provider => (config.providers as unknown as string[]).includes(provider[0])).map(provider => provider[1]);
-
-export const providerMap = providers
-    .map((provider) => {
-        if (typeof provider === "function") {
-            const providerData = provider()
-            return { id: providerData.id, name: providerData.name }
-        } else {
-            return { id: provider.id, name: provider.name }
-        }
-    })
-    .filter((provider) => provider.id !== "credentials")
+import { accountsTable, authenticatorsTable, eqLow, sessionsTable, usersTable } from "@/../data/schema";
+import { db } from '@/../data/index'
+import { providers } from "./lib/providers";
+import config from "../config";
 
 export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
+    session: {
+        strategy: "jwt"
+    },
+    adapter: DrizzleAdapter(db, {
+        usersTable: usersTable,
+        accountsTable: accountsTable,
+        sessionsTable: sessionsTable,
+        authenticatorsTable: authenticatorsTable,
+    }),
+    experimental: { enableWebAuthn: config.enableExperimentalPasskeys },
     trustHost: true,
-    providers,
+    providers: providers,
     pages: {
         signIn: "/login",
+        error: "/error",
     },
     callbacks: {
         async signIn(auth) {
-            const { db } = await import("@/../data/index");
-            console.log('Loggin try in user', auth?.user?.name);
+            console.log('Logging try user', auth?.user?.name);
 
             const user = auth.user.email ? await db.select().from(usersTable).where(eqLow(usersTable.email, auth.user.email)).get() : undefined;
 
             if (!auth.user.email || !user) return false;
 
             if (auth.user.image) await db.update(usersTable).set({
-                avatar: auth.user.image,
+                image: auth.user.image,
             }).where(eqLow(usersTable.email, auth.user.email)).execute();
 
+            auth.user.id = user.id;
             return true;
+        },
+        async session({ session, token }) {
+            if (token) {
+                session.user.id = token.id as string;
+                session.user.email = token.email as string;
+            }
+
+            if (!config.enableExperimentalPasskeys) return session;
+            const hasPasskey = await db.select().from(authenticatorsTable).where(eqLow(authenticatorsTable.userId, session.user.id)).get();
+
+            return {
+                ...session,
+                hasPasskey: !!hasPasskey,
+            } as Session;
+        },
+        async jwt({ token, user }) {
+            if (user) {
+                token.id = user.id;
+                token.email = user.email;
+            }
+            return token;
         },
     },
 })

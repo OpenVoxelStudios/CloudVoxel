@@ -1,5 +1,5 @@
 import { createReadStream, createWriteStream, existsSync, mkdirSync, renameSync, rmSync, Stats, statSync } from "fs";
-import { NextRequest as RealNextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import path, { basename, parse } from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
@@ -58,7 +58,7 @@ async function lsDir(pathStr: string, partition: string | null): Promise<FileEle
                 name: 'Server Admin',
                 avatar: clientconfig.websiteLogo,
             } : await db.select({
-                avatar: usersTable.avatar,
+                avatar: usersTable.image,
                 name: usersTable.name,
             }).from(usersTable).where(eqLow(usersTable.email, result.author)).get()
             || await db.select({ name: apiKeysTable.name }).from(apiKeysTable).where(eqLow(apiKeysTable.key, result.author)).get();

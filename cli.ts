@@ -4,10 +4,12 @@ import path from 'node:path';
 import select, { Separator } from '@inquirer/select';
 import checkbox from '@inquirer/checkbox';
 import input from '@inquirer/input';
+import password from '@inquirer/password';
 import confirm from '@inquirer/confirm';
 import { spawnSync } from 'node:child_process';
 import { apiKeysTable, eqLow, groupsTable, usersTable } from './data/schema.ts';
 import { v7 } from 'uuid';
+import { hashPassword } from '@/lib/crypto.ts';
 
 const filePermissions: { [key: string]: string } = {
     'files.get': 'Permission to list the files and get informations about them',
@@ -114,9 +116,10 @@ async function main() {
                         return true
                     },
                 });
+                const { hash, salt } = await hashPassword(await password({ message: 'Enter new user password', mask: '•', validate: (value) => (value.length >= 8 && value.length <= 32) }));
 
                 process.stdout.write('Creating user...');
-                await db.insert(usersTable).values({ email, name }).execute();
+                await db.insert(usersTable).values({ email, name, password: hash, salt: salt }).execute();
                 process.stdout.write('done!\n');
             }
 
@@ -133,6 +136,10 @@ async function main() {
                             value: 'edit.name',
                         },
                         {
+                            name: 'Edit user password',
+                            value: 'edit.password',
+                        },
+                        {
                             name: 'Delete user',
                             value: 'delete',
                         },
@@ -144,15 +151,15 @@ async function main() {
                         },
                     ],
                     loop: false,
-                }) as 'get' | 'edit.name' | 'delete' | 'exit';
+                }) as 'get' | 'edit.name' | 'edit.password' | 'delete' | 'exit';
 
                 if (action == 'exit') return main();
                 else if (action == 'get') {
                     const foundUser = users.find(u => u.email === user)!;
-                    const table: { [email: string]: { name: string; avatar: string | null } } = {};
+                    const table: { [email: string]: { name: string; image: string | null } } = {};
                     table[user] = {
                         name: foundUser.name,
-                        avatar: foundUser.avatar,
+                        image: foundUser.image,
                     };
 
                     console.table(table);
@@ -168,6 +175,14 @@ async function main() {
 
                     process.stdout.write('Updating user...');
                     await db.update(usersTable).set({ name: newName }).where(eqLow(usersTable.email, user)).execute();
+                    process.stdout.write('done!\n');
+                }
+
+                else if (action == 'edit.password') {
+                    const { hash, salt } = await hashPassword(await password({ message: `Enter new user password for ${user}`, mask: '•', validate: (value) => (value.length >= 8 && value.length <= 32) }));
+
+                    process.stdout.write('Updating user...');
+                    await db.update(usersTable).set({ password: hash, salt: salt }).where(eqLow(usersTable.email, user)).execute();
                     process.stdout.write('done!\n');
                 }
 
