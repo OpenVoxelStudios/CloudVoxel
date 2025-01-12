@@ -214,6 +214,7 @@ export default function FileList({
                     (
                         <AnimatePresence>
                             <motion.div
+                                id="filelist"
                                 key={`${sortBy}-${sortOrder}`}
                                 layout
                                 initial={{ opacity: 0 }}

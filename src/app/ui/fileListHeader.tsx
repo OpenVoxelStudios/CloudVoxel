@@ -124,11 +124,11 @@ export default function FileListHeader({
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">
+                                <Label htmlFor="folder-creation-name" className="text-right">
                                     Name
                                 </Label>
                                 <Input
-                                    id="name"
+                                    id="folder-creation-name"
                                     value={newDirectoryName}
                                     onChange={(e) => setNewDirectoryName(e.target.value)}
                                     className="col-span-3 bg-gray-700 border-gray-600 text-white"

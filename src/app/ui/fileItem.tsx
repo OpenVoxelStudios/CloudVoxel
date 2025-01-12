@@ -82,7 +82,7 @@ const MemoizedFileItem = React.memo(function FileItem({
     }, [name, onDelete, partition, pathParts, toast]);
 
     const FolderIcon = useMemo(() => {
-        return directory ? <Folder className="w-6 h-6 text-blue-400" /> : <File className="w-6 h-6 text-blue-400" />;
+        return directory ? Folder : File;
     }, [directory]);
 
     const AuthorImage = useMemo(() => {
@@ -207,7 +207,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                     <Link href={`${directory ? '/dashboard' : '/api/dashboard'}${pathParts.length == 0 ? '' : '/'}${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}${(!directory && partition) ? `?partition=${encodeURIComponent(partition)}` : ''}`} target={directory ? '_self' : '_blank'} className="flex-1">
                         <div className="flex items-center space-x-4 cursor-pointer">
                             <div className="bg-blue-900 p-2 rounded-lg">
-                                {FolderIcon}
+                                <FolderIcon className="w-6 h-6 text-blue-400" />
                             </div>
                             <div>
                                 <h3 className="text-sm font-medium text-gray-100">{name}</h3>
@@ -224,7 +224,7 @@ const MemoizedFileItem = React.memo(function FileItem({
             </ContextMenuTrigger>
             <ContextMenuContent className="w-64 bg-gray-900 border-gray-700">
                 <ContextMenuItem className="text-white hover:bg-gray-900 focus:bg-gray-900 hover:text-white focus:text-white data-[highlighted]:bg-gray-900">
-                    {FolderIcon}
+                    <FolderIcon className="mr-2 h-4 w-4" />
                     <span>{name}</span>
                 </ContextMenuItem>
                 <ContextMenuSeparator className="bg-gray-700" />

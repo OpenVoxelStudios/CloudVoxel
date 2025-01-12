@@ -10,7 +10,8 @@
     "db.generate": "drizzle-kit generate",
     "db.migrate": "drizzle-kit migrate",
     "db.push": "drizzle-kit push",
-    "cli": "bun cli.ts"
+    "cli": "bun cli.ts",
+    "test": "bun test/index.ts && playwright test && bun test/cleanup.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",
@@ -22,6 +23,7 @@
     "@inquirer/password": "^4.0.5",
     "@inquirer/select": "^4.0.4",
     "@libsql/client": "^0.14.0",
+    "@playwright/test": "^1.49.1",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-context-menu": "^2.2.4",
@@ -41,6 +43,7 @@
     "better-sqlite3": "^11.7.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.3",
     "filepond": "^4.32.6",
     "filepond-plugin-file-metadata": "^1.0.8",

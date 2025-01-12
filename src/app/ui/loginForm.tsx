@@ -60,6 +60,7 @@ export default function LoginForm() {
                                             <FormLabel className="text-gray-100">Email address</FormLabel>
                                             <FormControl>
                                                 <Input
+                                                    id='credentials-email'
                                                     placeholder="mail@example.com"
                                                     className="border-gray-700 bg-gray-800 text-gray-100"
                                                     {...field}
@@ -77,6 +78,7 @@ export default function LoginForm() {
                                             <FormLabel className="text-gray-100">Password</FormLabel>
                                             <FormControl>
                                                 <Input
+                                                    id='credentials-password'
                                                     type='password'
                                                     placeholder="••••••••"
                                                     className="border-gray-700 bg-gray-800 text-gray-100"
