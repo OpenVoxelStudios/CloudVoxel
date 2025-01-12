@@ -52,13 +52,11 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
         [memoizedPathParts, partition, setFiles]
     );
 
-    // Create stable debounced version
     const fetchFiles = useMemo(
         () => debounce(debouncedFetch, 300),
         [debouncedFetch]
     );
 
-    // Clean up
     useEffect(() => {
         return () => {
             fetchFiles.cancel();
@@ -113,6 +111,10 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
             setPartition(partitions[0]?.name);
         }
     }, [partitions, partition]);
+
+    useEffect(() => {
+        fetchFiles();
+    }, [fetchFiles, partition]);
 
     const memoizedFileUploadArea = useMemo(() => (
         <FileUploadArea

@@ -34,6 +34,7 @@ declare global {
         },
         enableAPI: boolean;
         enableExperimentalPasskeys?: boolean;
+        credentialLogin: boolean;
     }
 
     interface ClientConfig {

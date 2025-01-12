@@ -7,4 +7,5 @@ export default {
     },
     enableAPI: true,
     enableExperimentalPasskeys: false,
+    credentialLogin: false,
 } satisfies CloudConfig as CloudConfig;

@@ -1,4 +1,4 @@
-import LoginForm from '@/components/login-form'
+import LoginForm from '@/app/ui/loginForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Metadata } from 'next';
 import clientconfig from '@/../clientconfig';

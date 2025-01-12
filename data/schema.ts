@@ -50,6 +50,7 @@ export const usersTable = sqliteTable("users", {
     image: text(),
     emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
     password: text(),
+    salt: text(),
 }, (t) => [
     index('email').on(lower(t.email)),
 ]);
@@ -99,7 +100,16 @@ export const authenticatorsTable = sqliteTable("authenticator", {
     primaryKey({
         columns: [authenticator.userId, authenticator.credentialID],
     }),
-])
+]);
+
+export const rateLimitTable = sqliteTable("rateLimit", {
+    ip: text("ip").notNull(),
+    key: text("key").notNull(),
+    limit: integer("limit").notNull(),
+    reset: integer("reset").notNull(),
+}, (t) => [
+    primaryKey({ columns: [t.ip, t.key] }),
+]);
 
 
 export function lower(str: AnySQLiteColumn): SQL {
