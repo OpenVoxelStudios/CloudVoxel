@@ -35,6 +35,7 @@ First, clone the repository and prepare the configuration files:
 git clone https://github.com/OpenVoxelStudios/CloudVoxel/
 cd CloudVoxel
 cp .env.example .env.production
+cp clientconfig.example.ts clientconfig.ts
 cp config.example.ts config.ts
 ```
 
@@ -70,6 +71,7 @@ npx next start
 ```
 
 NOTE: NextJS does not use https. If you want to open it to the internet in https (highly recommended), you can use software like NGINX to serve as a "proxy".
+NOTE for icons: Use a tool like https://realfavicongenerator.net/ to get all the necessary icons and favicons and select NextJS on the "Ready" page and follow the instructions.
 
 ## Documentation
 
@@ -78,7 +80,7 @@ NOTE: NextJS does not use https. If you want to open it to the internet in https
 You can manage users, manage API keys and sync the local storage with the database with the new CLI introduced in v1.1!
 ```bash
 bun cli.ts
-# it seems like "deno" does not work with the cli...
+# it seems like the cli does not work with "deno"
 ```
 
 ## Contributing

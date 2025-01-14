@@ -21,11 +21,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: clientconfig.websiteName,
   description: clientconfig.websiteDescription,
-  icons: {
-    other: { url: '/images/icon.png' },
-    icon: '/images/favicon.ico',
-    apple: '/images/apple-icon.png',
+  appleWebApp: {
+    title: clientconfig.websiteName,
   },
+  manifest: '/manifest.webmanifest',
 };
 
 export default function RootLayout({

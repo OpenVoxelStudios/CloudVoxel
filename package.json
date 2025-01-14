@@ -11,7 +11,8 @@
     "db.migrate": "drizzle-kit migrate",
     "db.push": "drizzle-kit push",
     "cli": "bun cli.ts",
-    "test": "bun test/index.ts && playwright test && bun test/cleanup.ts"
+    "test": "bun test/index.ts && playwright test && bun test/cleanup.ts",
+    "bun.init": "bun install && cp .env.example .env.production && cp config.example.ts config.ts && bun run db.generate && bun run db.migrate"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",
@@ -86,7 +87,15 @@
     "typescript": "^5.7.3"
   },
   "trustedDependencies": [
+    "@scarf/scarf",
     "@tree-sitter-grammars/tree-sitter-yaml",
-    "core-js-pure"
+    "bcrypt",
+    "better-sqlite3",
+    "core-js-pure",
+    "esbuild",
+    "sharp",
+    "sqlite3",
+    "tree-sitter",
+    "tree-sitter-json"
   ]
 }

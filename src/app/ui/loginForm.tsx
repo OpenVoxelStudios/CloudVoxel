@@ -37,7 +37,7 @@ export default function LoginForm() {
     })
 
     return (
-        <div className={providerMap.some(p => p.id == 'credentials') ? "grid lg:grid-cols-2 gap-8" : ''}>
+        <div className={providerMap.some(p => p.id == 'credentials') && (providerMap.filter(p => p.id != 'credentials' && p.id != 'passkey').length > 0) ? "grid lg:grid-cols-2 gap-8" : ''}>
             <div className="space-y-3">
                 {providerMap.some(p => p.id == 'credentials') && (
                     <>
@@ -125,72 +125,74 @@ export default function LoginForm() {
                 )}
             </div>
 
-            <div className="relative">
-                {providerMap.some(p => p.id == 'credentials') ? <div className="hidden lg:block absolute -left-4 top-0 bottom-0 w-px bg-gray-700" /> : ''}
-                {(providerMap.some(p => p.id == 'passkey') || (providerMap.some(p => p.id == 'passkey'))) && (
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-700"></div>
+            {providerMap.filter(p => p.id != 'credentials' && p.id != 'passkey').length == 0 ? null : (
+                <div className="relative">
+                    {providerMap.some(p => p.id == 'credentials') ? <div className="hidden lg:block absolute -left-4 top-0 bottom-0 w-px bg-gray-700" /> : ''}
+                    {(providerMap.some(p => p.id == 'passkey') || (providerMap.some(p => p.id == 'passkey'))) && (
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-700"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="bg-gray-800 px-3 text-gray-500">OR</span>
+                            </div>
                         </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="bg-gray-800 px-3 text-gray-500">OR</span>
-                        </div>
-                    </div>
-                )}
+                    )}
 
-                <div className="space-y-3">
-                    {Object.values(providerMap)
-                        .filter(p => p.id != 'passkey' && p.id != 'credentials')
-                        .map((provider, i) => (
-                            <motion.div
-                                key={`provider-${i}`}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{
-                                    opacity: 1,
-                                    y: 0,
-                                    transition: {
-                                        duration: 0.2,
-                                        delay: i * 0.1
-                                    }
-                                }}
-                                exit={{ opacity: 0, y: -20 }}
-                            >
-                                <form
-                                    className={`my-3 space-y-4`}
-                                    action={async () => {
-                                        const res = await signIn(provider.id, {
-                                            redirect: false,
-                                        });
-
-                                        if (res?.error) showError(res?.code || res.error)
-                                        else redirect(`${location.origin}/dashboard`)
+                    <div className="space-y-3">
+                        {Object.values(providerMap)
+                            .filter(p => p.id != 'passkey' && p.id != 'credentials')
+                            .map((provider, i) => (
+                                <motion.div
+                                    key={`provider-${i}`}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{
+                                        opacity: 1,
+                                        y: 0,
+                                        transition: {
+                                            duration: 0.2,
+                                            delay: i * 0.1
+                                        }
                                     }}
+                                    exit={{ opacity: 0, y: -20 }}
                                 >
-                                    <Button
-                                        type='submit'
-                                        variant="outline"
-                                        className="w-full border-gray-700 bg-gray-800 text-gray-100 hover:bg-gray-600 hover:text-gray-50"
+                                    <form
+                                        className={`my-3 space-y-4`}
+                                        action={async () => {
+                                            const res = await signIn(provider.id, {
+                                                redirect: false,
+                                            });
+
+                                            if (res?.error) showError(res?.code || res.error)
+                                            else redirect(`${location.origin}/dashboard`)
+                                        }}
                                     >
-                                        {(() => {
-                                            const icons = {
-                                                discord: <SiDiscord className="mr-2 h-4 w-4" />,
-                                                github: <SiGithub className="mr-2 h-4 w-4" />,
-                                                gitlab: <SiGitlab className="mr-2 h-4 w-4" />,
-                                                google: <SiGoogle className="mr-2 h-4 w-4" />,
-                                                osu: <SiOsu className="mr-2 h-4 w-4" />,
-                                                slack: <SiSlack className="mr-2 h-4 w-4" />,
-                                                twitch: <SiTwitch className="mr-2 h-4 w-4" />,
-                                                reddit: <SiReddit className="mr-2 h-4 w-4" />,
-                                            };
-                                            return icons[provider.id.toLowerCase() as keyof typeof icons] || null;
-                                        })()}
-                                        {provider.name}
-                                    </Button>
-                                </form>
-                            </motion.div>
-                        ))}
+                                        <Button
+                                            type='submit'
+                                            variant="outline"
+                                            className="w-full border-gray-700 bg-gray-800 text-gray-100 hover:bg-gray-600 hover:text-gray-50"
+                                        >
+                                            {(() => {
+                                                const icons = {
+                                                    discord: <SiDiscord className="mr-2 h-4 w-4" />,
+                                                    github: <SiGithub className="mr-2 h-4 w-4" />,
+                                                    gitlab: <SiGitlab className="mr-2 h-4 w-4" />,
+                                                    google: <SiGoogle className="mr-2 h-4 w-4" />,
+                                                    osu: <SiOsu className="mr-2 h-4 w-4" />,
+                                                    slack: <SiSlack className="mr-2 h-4 w-4" />,
+                                                    twitch: <SiTwitch className="mr-2 h-4 w-4" />,
+                                                    reddit: <SiReddit className="mr-2 h-4 w-4" />,
+                                                };
+                                                return icons[provider.id.toLowerCase() as keyof typeof icons] || null;
+                                            })()}
+                                            {provider.name}
+                                        </Button>
+                                    </form>
+                                </motion.div>
+                            ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }

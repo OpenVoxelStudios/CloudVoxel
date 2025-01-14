@@ -45,3 +45,4 @@ yarn-error.log*
 *.tsbuildinfo
 
 certificates
+clientconfig.ts

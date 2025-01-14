@@ -18,12 +18,12 @@ import { FileElement } from '@/app/api/dashboard/[[...path]]/route'
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import Image from 'next/image';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { useMemo } from 'react'
 import { DebouncedFunc } from 'lodash';
 
 import React from 'react';
+import UserAvatar from './userAvatar';
 
 const MemoizedFileItem = React.memo(function FileItem({
     name,
@@ -98,14 +98,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                 </HoverCardContent>
                 <HoverCardTrigger asChild>
                     <div className="mr-2 w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden cursor-pointer">
-                        <Image
-                            unoptimized
-                            src={author.avatar}
-                            alt="User avatar"
-                            className="w-full h-full object-cover"
-                            width={64}
-                            height={64}
-                        />
+                        <UserAvatar name={author.name} src={author.avatar} />
                     </div>
                 </HoverCardTrigger>
             </HoverCard>
