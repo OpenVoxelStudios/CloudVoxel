@@ -10,6 +10,7 @@ const baseURL = process.env.AUTH_URL || `http://localhost:3000`;
 
 // Reference: https://playwright.dev/docs/test-configuration
 export default defineConfig({
+    fullyParallel: true,
     // Timeout per test
     timeout: 30 * 1000,
     // Test directory
@@ -45,33 +46,39 @@ export default defineConfig({
     },
 
     projects: [
+        { name: 'setup', testMatch: /.*\.setup\.ts/ },
         {
             name: "Desktop Chrome",
             use: {
                 ...devices["Desktop Chrome"],
             },
+            dependencies: ['setup'],
         },
         // {
         //     name: 'Desktop Firefox',
         //     use: {
         //         ...devices['Desktop Firefox'],
         //     },
+        //     dependencies: ['setup'],
         // },
         // {
         //     name: 'Desktop Safari',
         //     use: {
         //         ...devices['Desktop Safari'],
         //     },
+        //     dependencies: ['setup'],
         // },
         // {
         //     name: "Mobile Chrome",
         //     use: {
         //         ...devices["Pixel 5"],
         //     },
+        //     dependencies: ['setup'],
         // },
         // {
         //     name: "Mobile Safari",
         //     use: devices["iPhone 12"],
+        //     dependencies: ['setup'],
         // },
     ],
 });
