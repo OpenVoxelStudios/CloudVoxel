@@ -11,7 +11,7 @@
     "db.migrate": "drizzle-kit migrate",
     "db.push": "drizzle-kit push",
     "cli": "bun cli.ts",
-    "test": "playwright test && bun test/cleanup.ts",
+    "test": "playwright test",
     "bun.init": "bun install && cp .env.example .env.production && cp config.example.ts config.ts && bun run db.generate && bun run db.migrate"
   },
   "dependencies": {

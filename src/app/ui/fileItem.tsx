@@ -196,7 +196,7 @@ const MemoizedFileItem = React.memo(function FileItem({
     return (
         <ContextMenu>
             <ContextMenuTrigger>
-                <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700 hover:bg-gray-750 transition-colors duration-150 ease-in-out">
+                <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700 hover:bg-gray-750 transition-colors duration-150 ease-in-out" data-test="fileitem">
                     <Link href={`${directory ? '/dashboard' : '/api/dashboard'}${pathParts.length == 0 ? '' : '/'}${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}${(!directory && partition) ? `?partition=${encodeURIComponent(partition)}` : ''}`} target={directory ? '_self' : '_blank'} className="flex-1">
                         <div className="flex items-center space-x-4 cursor-pointer">
                             <div className="bg-blue-900 p-2 rounded-lg">

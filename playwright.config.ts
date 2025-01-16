@@ -10,7 +10,7 @@ const baseURL = process.env.AUTH_URL || `http://localhost:3000`;
 
 // Reference: https://playwright.dev/docs/test-configuration
 export default defineConfig({
-    fullyParallel: true,
+    fullyParallel: false,
     // Timeout per test
     timeout: 30 * 1000,
     // Test directory
@@ -51,6 +51,7 @@ export default defineConfig({
             name: "Desktop Chrome",
             use: {
                 ...devices["Desktop Chrome"],
+                storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
             },
             dependencies: ['setup'],
         },
@@ -58,6 +59,7 @@ export default defineConfig({
         //     name: 'Desktop Firefox',
         //     use: {
         //         ...devices['Desktop Firefox'],
+        //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
         //     },
         //     dependencies: ['setup'],
         // },
@@ -65,6 +67,7 @@ export default defineConfig({
         //     name: 'Desktop Safari',
         //     use: {
         //         ...devices['Desktop Safari'],
+        //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
         //     },
         //     dependencies: ['setup'],
         // },
@@ -72,12 +75,16 @@ export default defineConfig({
         //     name: "Mobile Chrome",
         //     use: {
         //         ...devices["Pixel 5"],
+        //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
         //     },
         //     dependencies: ['setup'],
         // },
         // {
         //     name: "Mobile Safari",
-        //     use: devices["iPhone 12"],
+        //     use: {
+        //         devices["iPhone 12"],
+        //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
+        //     },
         //     dependencies: ['setup'],
         // },
     ],

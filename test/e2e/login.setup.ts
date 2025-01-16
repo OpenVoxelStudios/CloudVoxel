@@ -17,16 +17,14 @@ setup('authenticate', async ({ page }) => {
     }).onConflictDoNothing()
 
 
-    // Start from the index page (the baseURL is set via the webServer in the playwright.config.ts)
     await page.goto("/");
-    // Find an element with the text 'Open Dashboard' and click on it
-    await page.click("text=Open Dashboard");
+    await page.getByRole('button', { name: 'Open Dashboard' }).click();
     await page.waitForURL('/login');
-    // Fill the form with the credentials
+
     await page.fill('input[id="credentials-email"]', 'test@example.com');
     await page.fill('input[id="credentials-password"]', 'ASecurePassword123!');
-    // Submit the form
-    await page.click('text=Sign in with Email');
+    await page.getByRole('button', { name: 'Sign in with Email' }).click();
 
     await expect(page).toHaveURL('/dashboard');
+    await page.context().storageState({ path: __dirname + '/storage.json' });
 });
