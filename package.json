@@ -12,7 +12,7 @@
     "db.push": "drizzle-kit push",
     "cli": "bun cli.ts",
     "test": "playwright test",
-    "bun.init": "bun install && cp .env.example .env.production && cp config.example.ts config.ts && bun run db.generate && bun run db.migrate"
+    "bun.start": "bun run build && bun run start"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",
