@@ -13,6 +13,7 @@ import { getRootAndPermission } from "@/lib/api";
 import { root as ROOT } from "@/lib/root";
 import validateApi from "@/lib/validateApi";
 import { getPartition } from "@/lib/partition";
+import logs from "@/lib/logs";
 
 export interface FileElement {
     name: string;

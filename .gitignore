@@ -33,6 +33,7 @@ config.ts
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
 
 # env files (can opt-in for committing if needed)
 .env*

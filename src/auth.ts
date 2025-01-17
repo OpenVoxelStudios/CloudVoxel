@@ -5,8 +5,10 @@ import { accountsTable, authenticatorsTable, eqLow, sessionsTable, usersTable } 
 import { db } from '@/../data/index'
 import { providers } from "./lib/providers";
 import config from "../config";
+import logs from "./lib/logs";
 
 export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
+    logger: logs,
     session: {
         strategy: "jwt"
     },

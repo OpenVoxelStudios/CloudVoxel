@@ -3,7 +3,7 @@ import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import path, { basename, parse } from 'node:path';
 import { formatBytes } from '../src/lib/functions.ts';
 import { and, isNotNull, isNull } from 'drizzle-orm';
-import { glob } from 'glob';
+import { glob } from 'fast-glob';
 import { drizzle } from 'drizzle-orm/libsql';
 import config from '../config.ts';
 import { createHash } from 'node:crypto';
@@ -22,7 +22,7 @@ if (typeof root === 'string') {
 
     await db.delete(filesTable).where(isNotNull(filesTable.partition)).execute();
 
-    for await (const file of await glob('**/*', { cwd: root, follow: false, ignore: config.database.globFileBlacklist })) {
+    for await (const file of await glob('**/*', { cwd: root, ignore: config.database.globFileBlacklist })) {
         const fileName = basename(file);
         const fileStats = lstatSync(path.join(root, file));
 
@@ -57,7 +57,7 @@ else {
     for await (const partition of Object.keys(root)) {
         const localRoot = root[partition];
 
-        for await (const file of await glob('**/*', { cwd: localRoot.path, follow: false, ignore: config.database.globFileBlacklist })) {
+        for await (const file of await glob('**/*', { cwd: localRoot.path, ignore: config.database.globFileBlacklist })) {
             const fileName = basename(file);
             const fileStats = lstatSync(path.join(localRoot.path, file));
 

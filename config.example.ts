@@ -8,4 +8,9 @@ export default {
     enableAPI: true,
     enableExperimentalPasskeys: false,
     credentialLogin: false,
+    logs: {
+        console: true,
+        folder: './logs',
+        fileFormat: 'YYYY-MM-DD.log',
+    },
 } satisfies CloudConfig as CloudConfig;
