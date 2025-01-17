@@ -11,6 +11,8 @@ Initialize the project to make it work localy as detailed in [README.md](/README
 Please try to follow this code style. If you find code that does not fit the style, feel free to edit it!
 -> [TypeScript Style Guide](https://github.com/basarat/typescript-book/blob/master/docs/styleguide/styleguide.md)
 
+When adding new features, please also add, if applicable, a test suite in the [/test/e2e](/test/e2e/) folder.
+
 ---
 
 Thank you for contributing to CloudVoxel!

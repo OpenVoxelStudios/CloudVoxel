@@ -34,8 +34,6 @@ export default function FileList({
     const [renameTo, setRenameTo] = useState<{ from: string; to: string; } | null>(null);
 
     const moveFolder = async (name: string, folder: string) => {
-        console.log(`Move to ${folder}`);
-
         const res = await fetch(`/api/dashboard/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
             method: 'PATCH',
             headers: {

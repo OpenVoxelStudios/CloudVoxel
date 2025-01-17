@@ -26,7 +26,7 @@ function getColorFor(message: string, func: LogFunction): string {
     }
 }
 
-function writeLog(message: string, func: LogFunction): void {
+function writeLog(message: string, func: LogFunction, forceDisableFile?: boolean): void {
     const logMethod: Record<LogFunction, string> = {
         log: '',
         debug: 'DEBUG: ',
@@ -37,18 +37,18 @@ function writeLog(message: string, func: LogFunction): void {
     if (config.logs.console || process.env.NODE_ENV === 'development') {
         console[func](getColorFor(`[${new Date().toLocaleString()}] ${logMethod[func]}${message}`, func));
     }
-    if (config.logs.folder) {
+    if (forceDisableFile !== true && config.logs.folder) {
         appendFileSync(`${config.logs.folder}/${formatDate(config.logs.fileFormat)}`, `[${new Date().toLocaleString()}] ${logMethod[func]}${message}\n`, { encoding: 'utf-8' });
     }
 }
 
 
 export function log(message: string, metadata?: unknown): void {
-    writeLog(message + (metadata ? ` (${String(metadata)})` : ''), 'log');
+    writeLog(message + (metadata ? ` (${typeof metadata === 'object' && metadata !== null ? JSON.stringify(metadata) : String(metadata)})` : ''), 'log');
 }
 
 export function debug(message: string, metadata?: unknown): void {
-    writeLog(message + (metadata ? ` (${String(metadata)})` : ''), 'debug');
+    writeLog(message + (metadata ? ` (${typeof metadata === 'object' && metadata !== null ? JSON.stringify(metadata) : String(metadata)})` : ''), 'debug', true);
 }
 
 export function warn(code: string): void {

@@ -9,8 +9,10 @@ import getFiles from "@/lib/getFiles";
 export const sortOptions = ['name', 'date', 'size', 'type', 'uploader'] as const;
 import { useCallback, useEffect, useMemo, useState } from "react";
 import debounce from "lodash/debounce";
+import { useToast } from "@/hooks/use-toast";
 
 export default function FileListWrapper({ pathParts, initialFiles }: { pathParts: string[], initialFiles: FileElement[] | FetchError | null }) {
+    const { toast } = useToast();
     const memoizedPathParts = useMemo(() => pathParts, [pathParts]);
 
     const [partitions, setPartitions] = useState<{ name: string; displayName: string }[] | undefined>(undefined);
@@ -45,11 +47,15 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
                 );
                 setFiles(fetchedFiles);
             } catch (error) {
-                console.error('Error fetching files:', error);
+                toast({
+                    title: `Could not fetch files.`,
+                    description: `${error || 'No error message'}`,
+                    variant: 'destructive',
+                });
                 setFiles(null);
             }
         },
-        [memoizedPathParts, partition, setFiles]
+        [memoizedPathParts, partition, setFiles, toast]
     );
 
     const fetchFiles = useMemo(
@@ -101,10 +107,14 @@ export default function FileListWrapper({ pathParts, initialFiles }: { pathParts
             })
             .then(data => setPartitions(data == 'undefined' ? undefined : data))
             .catch(err => {
-                console.error('Error fetching partitions:', err);
+                toast({
+                    title: `Could not fetch partitions.`,
+                    description: `${err || 'No error message'}`,
+                    variant: 'destructive',
+                });
                 setPartitions(undefined);
             });
-    }, []);
+    }, [toast]);
 
     useEffect(() => {
         if (partitions && !partitions.some(p => p.name === partition)) {

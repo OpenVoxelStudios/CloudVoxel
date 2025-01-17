@@ -9,6 +9,7 @@ import { root as ROOT } from "@/lib/root";
 import validateApi from "@/lib/validateApi";
 import { auth } from "@/auth";
 import { getPartition } from "@/lib/partition";
+import logger from "@/lib/logger";
 
 
 export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
@@ -42,6 +43,8 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
         hash: file.hash,
         code: file.code,
     }, { status: 200 });
+
+    logger.log(`<${req.auth?.user?.email || `API-${req.headers.get('Authorization')}`}> Generating share code (first time) for "${fileName}" file at ${filePath}`);
 
     const code = v7();
 

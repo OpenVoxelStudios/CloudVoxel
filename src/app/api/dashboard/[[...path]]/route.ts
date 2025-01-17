@@ -13,7 +13,7 @@ import { getRootAndPermission } from "@/lib/api";
 import { root as ROOT } from "@/lib/root";
 import validateApi from "@/lib/validateApi";
 import { getPartition } from "@/lib/partition";
-import logs from "@/lib/logs";
+import logger from "@/lib/logger";
 
 export interface FileElement {
     name: string;
@@ -91,12 +91,13 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 
     const fileName = sanitizedFilename(file.name);
     const fullPath = path.join(pathStr, fileName);
+    const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
 
     if (existsSync(fullPath)) return NextResponse.json({ error: 'File already exists.' }, { status: 400, statusText: 'File already exists.' });
     if (file.size > unformatBytes(clientconfig.maxFileSize)) return NextResponse.json({ error: `File exceeds the ${clientconfig.maxFileSize} limit.` }, { status: 400, statusText: `File exceeds the ${clientconfig.maxFileSize} limit.` });
     if (partition && typeof ROOT !== 'string' && ROOT[partition].maxPartitionSize && file.size + await getPartitionSize(partition) > unformatBytes(ROOT[partition].maxPartitionSize)) return NextResponse.json({ error: `File exceeds the partition's ${ROOT[partition].maxPartitionSize} size limit.` }, { status: 400, statusText: `File exceeds the partition's ${ROOT[partition].maxPartitionSize} size limit.` });
 
-
+    logger.log(`<${req.auth?.user?.email || `API-${req.headers.get('Authorization')}`}> Uploading "${fileName}" file at ${filePath} (${formatBytes(file.size)})`);
     const fileStream = file.stream();
     const writeStream = createWriteStream(fullPath);
     const hashSum = createHash('sha256');
@@ -124,7 +125,7 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 
     await db.insert(filesTable).values({
         name: fileName,
-        path: rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/'),
+        path: filePath,
         directory: 0,
         size: formatBytes(file.size),
         uploadedAt: Date.now(),
@@ -196,11 +197,15 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
 
     if (req.nextUrl.searchParams.get('folder') == 'true') {
         if (existsSync(pathStr)) return NextResponse.json({ error: 'Path already exists.' }, { status: 400 });
+        const fName = rawPathStr.pop()!;
+        const fPath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
+
+        logger.log(`<${req.auth?.user?.email || `API-${req.headers.get('Authorization')}`}> Creating "${fName}" directory at ${fPath}`);
         mkdirSync(pathStr, { recursive: true });
 
         await db.insert(filesTable).values({
-            name: rawPathStr.pop()!,
-            path: rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/'),
+            name: fName,
+            path: fPath,
             directory: 1,
             author: req?.auth!.user?.email || req.headers.get('Authorization') || 'api',
             partition: (partition && typeof ROOT !== 'string') ? partition : undefined,
@@ -244,6 +249,8 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
             )).limit(1))[0];
             if (renameExists) return NextResponse.json({ error: 'A file with this name already exists.' }, { status: 400 });
             if (existsSync(path.join(root, ...rawPathStr.slice(0, -1), renameParam))) return NextResponse.json({ error: 'File exists on the storage system. Please contact the server administrator if you believe this is a bug.' }, { status: 400 });
+
+            logger.log(`<${req.auth?.user?.email || `API-${req.headers.get('Authorization')}`}> Renaming "${fileName}" file to "${renameParam}" at ${filePath}`);
 
             // Rename the file itself
             await db.update(filesTable).set({ name: renameParam }).where(and(
@@ -292,10 +299,11 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
             )).limit(1))[0];
             if (moveExists) return NextResponse.json({ error: 'A file with this name exists in the destination folder.' }, { status: 400 });
 
+            logger.log(`<${req.auth?.user?.email || `API-${req.headers.get('Authorization')}`}> Moving "${fileName}" file at ${filePath} ${UNSAFE_moveParam == '../' ? 'back' : `to folder "${moveParam}"`}`);
+
             // Edit path in the database
             let oldPath = rawPathStr.slice(0, -1).join('/');
             if (oldPath == '') oldPath = '/';
-
 
             // The file itself
             await db.update(filesTable)
@@ -312,7 +320,7 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
             // All possible subfiles
             const old = `${oldPath == '/' ? '' : oldPath + '/'}${fileName}`;
             const secondNewPath = destination.concat(fileName).join('/') == '' ? '/' : destination.concat(fileName).join('/');
-            console.log(old, secondNewPath);
+
             await db.update(filesTable)
                 .set({
                     path: sql`REPLACE(${filesTable.path}, ${old}, ${secondNewPath})`
@@ -334,7 +342,7 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
             return NextResponse.json({ error: 'Not implemented.' }, { status: 501 });
         }
     } catch (e) {
-        console.error(e);
+        logger.error(String(e));
         return NextResponse.json({ error: 'Something went wrong server side.' }, { status: 500 });
     }
 });
@@ -368,6 +376,8 @@ export const DELETE = auth(async (req: NextRequest, { params }: { params: Promis
 
         if (subFiles.length > 0) return NextResponse.json({ error: 'Cannot delete non-empty directories.' }, { status: 400 });
         else {
+            logger.log(`<${req.auth?.user?.email || `API-${req.headers.get('Authorization')}`}> Deleting "${fileName}" directory at ${filePath}`);
+
             rmSync(pathStr, { force: true, recursive: true });
             await db.delete(filesTable).where(and(
                 eqLow(filesTable.path, filePath),
@@ -378,6 +388,8 @@ export const DELETE = auth(async (req: NextRequest, { params }: { params: Promis
         }
     } else {
         try {
+            logger.log(`<${req.auth?.user?.email || `API-${req.headers.get('Authorization')}`}> Deleting "${fileName}" file at ${filePath}`);
+
             await db.delete(filesTable).where(and(
                 eqLow(filesTable.path, filePath),
                 eqLow(filesTable.name, fileName),
@@ -389,6 +401,7 @@ export const DELETE = auth(async (req: NextRequest, { params }: { params: Promis
             response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=10');
             return response;
         } catch (error) {
+            logger.error(String(error));
             return NextResponse.json({ error: String(error) }, { status: 500 });
         }
     }

@@ -45,7 +45,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     const response = new NextResponse(readStream as unknown as ReadableStream, {
         status: 200,
         headers: {
-            'Content-Type': mime.getType(pathStr) || 'application/octet-stream',
+            'Content-Type': (req.nextUrl.searchParams.get('download') == 'true' ? false : mime.getType(pathStr)) || 'application/octet-stream',
             'Content-Length': stats.size.toString(),
             'ETag': `"${fileHash}"`,
             'X-Content-SHA256': fileHash,

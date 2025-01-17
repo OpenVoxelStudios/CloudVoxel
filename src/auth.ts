@@ -5,10 +5,10 @@ import { accountsTable, authenticatorsTable, eqLow, sessionsTable, usersTable } 
 import { db } from '@/../data/index'
 import { providers } from "./lib/providers";
 import config from "../config";
-import logs from "./lib/logs";
+import logger from "./lib/logger";
 
 export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
-    logger: logs,
+    logger: logger,
     session: {
         strategy: "jwt"
     },
@@ -27,11 +27,10 @@ export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
     },
     callbacks: {
         async signIn(auth) {
-            console.log('Logging try user', auth?.user?.name);
-
             const user = auth.user.email ? await db.select().from(usersTable).where(eqLow(usersTable.email, auth.user.email)).get() : undefined;
 
             if (!auth.user.email || !user) return false;
+            logger.log(`User ${auth.user?.name} (<${auth.user?.email}>) logged in`);
 
             if (auth.user.image) await db.update(usersTable).set({
                 image: auth.user.image,

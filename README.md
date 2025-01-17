@@ -30,7 +30,14 @@ CloudVoxel is a robust file-sharing platform that puts you in control:
 
 ## Installation
 
-First, clone the repository and prepare the configuration files:
+You can use the [install.sh](/install.sh) script like the following for Mac and Linux:
+```bash
+curl -fsSL https://raw.githubusercontent.com/OpenVoxelStudios/CloudVoxel/refs/heads/main/install.sh | bash
+```
+
+---
+
+Or manually: First, clone the repository and prepare the configuration files:
 ```bash
 git clone https://github.com/OpenVoxelStudios/CloudVoxel/
 cd CloudVoxel
