@@ -25,22 +25,22 @@ export async function getPartitions(email: string): Promise<{ name: string; disp
 }
 
 export async function getRootAndPermission(req: NextRequest, ROOT: rootType): Promise<string | false> {
-    if (!req.auth) return false;
+    if (!req.auth && !req.headers.get('Authorization')) return false;
     if (typeof ROOT === 'string') return ROOT;
 
-    let permissions = req.headers.get('Authorization') ? true : false;
     const partition = getPartition(req);
     const find = Object.keys(ROOT).find(r => r == partition);
     if (!partition || !find) return false;
 
-    if (!permissions && req.auth && req.auth.user && req.auth.user.email) {
+    if (req.headers.get('Authorization')) return ROOT[find].path;
+
+    if (req.auth && req.auth.user && req.auth.user.email) {
         const availablePartitions = await getPartitions(req.auth.user.email);
 
         if (availablePartitions == 'undefined') return false;
         if (!availablePartitions.some(p => p.name == partition)) return false;
-
-        permissions = true;
-    }
+        return ROOT[find].path;
+    };
     
-    return ROOT[find].path;
+    return false;
 }

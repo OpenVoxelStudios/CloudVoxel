@@ -1,7 +1,7 @@
 import { db } from "@/../data/index";
-import { eqLow, filesTable, usersTable } from "@/../data/schema";
+import { apiKeysTable, eqLow, usersTable } from "@/../data/schema";
 import { test, expect } from "@playwright/test";
-import { and } from "drizzle-orm";
+import { baseURL } from "../../playwright.config";
 
 test.describe('Full Web Test Suite', () => {
     const folderName = 'Test Folder';
@@ -11,6 +11,7 @@ test.describe('Full Web Test Suite', () => {
         buffer: Buffer.from('Hello, World!'),
         rename: 'renamed file.txt',
     }
+    const API_KEY = '01234567-8901-2345-6789-012345678901';
 
     test("Folder creation", async ({ page }) => {
         await page.goto('/dashboard');
@@ -52,33 +53,67 @@ test.describe('Full Web Test Suite', () => {
         expect(await page.$(`text='Moved "${file.rename}" back.'`, { strict: false })).toBeDefined();
     });
 
-    // test("Folder Deletion", async ({ page }) => {
-    //     await page.goto(`/dashboard/`);
-    //     await page.waitForSelector('data-test=fileitem', { state: 'detached' });
+    test('File Fetching', async () => {
+        const answ = await (await fetch(`${baseURL}/api/dashboard/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': API_KEY,
+                'Accept': 'application/json',
+            },
+        })).json();
 
-    //     const possible = await page.waitForSelector('data-test=fileitem', { strict: false, state: 'visible' });
-    //     console.log(possible)
+        expect(answ.length).toBeGreaterThanOrEqual(2);
+    });
 
-    //     expect(await page.$(`text='Deleted "${folderName}"'`, { strict: false })).toBeDefined();
-    // });
+    test("File Sharing", async () => {
+        const answ = await (await fetch(`${baseURL}/api/sharelink/${encodeURIComponent(file.rename)}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': API_KEY,
+                'Accept': 'application/json',
+            },
+        })).json();
+
+        expect(answ.name).toBe(file.rename);
+        expect(answ.hash).toBeDefined();
+        expect(answ.code).toBeDefined();
+
+        const answ2 = await fetch(`${baseURL}/api/share/${encodeURIComponent(file.rename)}?download=true&code=${encodeURIComponent(answ.code)}&hash=${encodeURIComponent(answ.hash)}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': API_KEY,
+                'Accept': 'application/octet-stream',
+            },
+        });
+
+        expect(answ2.status).toBe(200);
+    });
+
+    test("File and Folder Deletion", async () => {
+        const answ = await (await fetch(`${baseURL}/api/dashboard/${encodeURIComponent(folderName)}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': API_KEY,
+                'Accept': 'application/json',
+            },
+        })).json();
+
+        expect(answ.success).toBe(true);
+
+        const answ2 = await (await fetch(`${baseURL}/api/dashboard/${encodeURIComponent(file.rename)}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': API_KEY,
+                'Accept': 'application/json',
+            },
+        })).json();
+
+        expect(answ2.success).toBe(true);
+    });
 
 
-    test('Cleanup', async ({ page }) => {
+    test('Cleanup', async () => {
         await db.delete(usersTable).where(eqLow(usersTable.email, 'test@example.com')).run();
-
-        await db.delete(filesTable).where(and(
-            eqLow(filesTable.name, file.name),
-            eqLow(filesTable.path, folderName),
-        )).run();
-
-        await db.delete(filesTable).where(and(
-            eqLow(filesTable.name, file.rename),
-            eqLow(filesTable.path, '/'),
-        )).run();
-
-        await db.delete(filesTable).where(and(
-            eqLow(filesTable.name, folderName),
-            eqLow(filesTable.path, '/'),
-        )).run();
+        await db.delete(apiKeysTable).where(eqLow(apiKeysTable.key, API_KEY)).run();
     });
 });

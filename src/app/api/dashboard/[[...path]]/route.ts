@@ -140,8 +140,8 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
 // TODO: Optimize json length by removing user duplicate
 export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
-        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.get']);
-        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.get.' }, { status: 401 });
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files:*', 'files:get']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files:get.' }, { status: 401 });
     };
     const root = await getRootAndPermission(req, ROOT);
     if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
@@ -159,7 +159,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     if (!isFile) {
         let files = await lsDir(rawPathStr.join('/'), partition);
         if (req.headers.get('Authorization')) {
-            const hasSharePerms = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.share']);
+            const hasSharePerms = await validateApi(req.headers.get('Authorization')!, ['files:*', 'files:share']);
             if (!hasSharePerms) files = files.map(f => ({ ...f, code: undefined }));
         }
 
@@ -182,8 +182,8 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
 
 export const POST = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
-        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.edit']);
-        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.edit.' }, { status: 401 });
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files:*', 'files:edit']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files:edit.' }, { status: 401 });
     }
     else if (!req.auth || !req.auth.user) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     const root = await getRootAndPermission(req, ROOT);
@@ -218,8 +218,8 @@ export const POST = auth(async (req: NextRequest, { params }: { params: Promise<
 
 export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
-        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.edit']);
-        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.edit.' }, { status: 401 });
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files:*', 'files:edit']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files:edit.' }, { status: 401 });
     };
     const root = await getRootAndPermission(req, ROOT);
     if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
@@ -349,8 +349,8 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
 
 export const DELETE = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
-        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.delete']);
-        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.delete.' }, { status: 401 });
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files:*', 'files:delete']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files:delete.' }, { status: 401 });
     };
     const root = await getRootAndPermission(req, ROOT);
     if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });

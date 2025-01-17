@@ -23,6 +23,8 @@ if (typeof root === 'string') {
     await db.delete(filesTable).where(isNotNull(filesTable.partition)).execute();
 
     for await (const file of await glob('**/*', { cwd: root, ignore: config.database.globFileBlacklist })) {
+        if (await db.select().from(filesTable).where(and(eqLow(filesTable.name, basename(file)), eqLow(filesTable.path, parse(file).dir == '' ? '/' : parse(file).dir))).get()) continue;
+
         const fileName = basename(file);
         const fileStats = lstatSync(path.join(root, file));
 

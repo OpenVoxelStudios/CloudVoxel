@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: __dirname + '/.env.development' });
 
 // Set webServer.url and use.baseURL with the location of the WebServer
-const baseURL = process.env.AUTH_URL || `http://localhost:3000`;
+export const baseURL = process.env.AUTH_URL || `http://localhost:3000`;
 
 // Reference: https://playwright.dev/docs/test-configuration
 export default defineConfig({

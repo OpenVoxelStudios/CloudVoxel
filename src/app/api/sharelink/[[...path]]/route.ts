@@ -14,8 +14,8 @@ import logger from "@/lib/logger";
 
 export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }): Promise<NextResponse> => {
     if (req.headers.get('Authorization')) {
-        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files.*', 'files.share']);
-        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files.share.' }, { status: 401 });
+        const hasValidToken = await validateApi(req.headers.get('Authorization')!, ['files:*', 'files:share']);
+        if (!hasValidToken) return NextResponse.json({ error: 'Unauthorized API key for permission files:share.' }, { status: 401 });
     };
     const root = await getRootAndPermission(req, ROOT);
     if (!root) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });

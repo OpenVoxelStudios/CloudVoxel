@@ -1,6 +1,6 @@
 import config from "../../config";
 import { db } from "../../data/index";
-import { usersTable } from "../../data/schema";
+import { apiKeysTable, usersTable } from "../../data/schema";
 import { hashPassword } from "@/lib/crypto";
 import { test as setup, expect } from '@playwright/test';
 
@@ -14,6 +14,12 @@ setup('authenticate', async ({ page }) => {
         name: 'Test User',
         password: userPassword.hash,
         salt: userPassword.salt,
+    }).onConflictDoNothing();
+
+    await db.insert(apiKeysTable).values({
+        name: 'testkey',
+        key: '01234567-8901-2345-6789-012345678901',
+        permissions: 'files:*',
     }).onConflictDoNothing()
 
 

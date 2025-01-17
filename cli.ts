@@ -12,10 +12,10 @@ import { v7 } from 'uuid';
 import { hashPassword } from '@/lib/crypto.ts';
 
 const filePermissions: { [key: string]: string } = {
-    'files.get': 'Permission to list the files and get informations about them',
-    'files.edit': 'Permission to upload, rename and move a file or folder',
-    'files.share': 'Permission to create a public share link',
-    'files.delete': 'Permission to delete a file or folder from storage',
+    'files:get': 'Permission to list the files and get informations about them',
+    'files:edit': 'Permission to upload, rename and move a file or folder',
+    'files:share': 'Permission to create a public share link',
+    'files:delete': 'Permission to delete a file or folder from storage',
 };
 
 async function main() {
@@ -372,7 +372,7 @@ async function main() {
                 const permissions = await checkbox({
                     message: 'Select a package manager',
                     choices: [
-                        { name: 'files.*', value: 'files.*', description: 'Enable all file permissions' },
+                        { name: 'files:*', value: 'files:*', description: 'Enable all file permissions' },
                         new Separator(),
                         ...Object.keys(filePermissions).map(p => ({
                             name: p,
@@ -448,7 +448,7 @@ async function main() {
                     const permissions = await checkbox({
                         message: 'Select a package manager',
                         choices: [
-                            { name: 'files.*', value: 'files.*', description: 'Enable all file permissions', checked: foundKey.permissions.includes('files.*') },
+                            { name: 'files:*', value: 'files:*', description: 'Enable all file permissions', checked: foundKey.permissions.includes('files:*') },
                             new Separator(),
                             ...Object.keys(filePermissions).map(p => ({
                                 name: p,
