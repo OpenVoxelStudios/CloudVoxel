@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
-        
+
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
 

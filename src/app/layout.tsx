@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     title: clientconfig.websiteName,
   },
-  manifest: '/manifest.webmanifest',
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -15,9 +15,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

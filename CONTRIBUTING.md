@@ -13,6 +13,8 @@ Please try to follow this code style. If you find code that does not fit the sty
 
 When adding new features, please also add, if applicable, a test suite in the [/test/e2e](/test/e2e/) folder.
 
+Don't forget to run `bun run lint` before merging!
+
 ---
 
 Thank you for contributing to CloudVoxel!

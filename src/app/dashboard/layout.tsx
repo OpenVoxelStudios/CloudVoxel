@@ -5,16 +5,16 @@ import { Toaster } from "@/components/ui/toaster";
 import clientconfig from "@/../clientconfig";
 
 const geistSans = Geist({
-  weight: ['100', '900'],
-  style: ['normal'],
-  subsets: ['latin'],
+  weight: ["100", "900"],
+  style: ["normal"],
+  subsets: ["latin"],
   variable: "--font-geist-sans",
-})
+});
 
 const geistMono = Geist_Mono({
-  weight: ['100', '900'],
-  style: ['normal'],
-  subsets: ['latin'],
+  weight: ["100", "900"],
+  style: ["normal"],
+  subsets: ["latin"],
   variable: "--font-geist-mono",
 });
 
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     title: clientconfig.websiteName,
   },
-  manifest: '/manifest.webmanifest',
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({

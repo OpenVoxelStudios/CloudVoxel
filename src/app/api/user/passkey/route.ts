@@ -6,21 +6,30 @@ import { and } from "drizzle-orm";
 import logger from "@/lib/logger";
 
 export const DELETE = auth(async (req: NextRequest): Promise<NextResponse> => {
-    if (!req.auth || !req.auth.user || !req.auth.user.id) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    if (!req.auth.hasPasskey) return NextResponse.json({ error: 'No passkey associated to your account.' }, { status: 400 });
+  if (!req.auth || !req.auth.user || !req.auth.user.id)
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  if (!req.auth.hasPasskey)
+    return NextResponse.json(
+      { error: "No passkey associated to your account." },
+      { status: 400 },
+    );
 
-    logger.log(`<${req.auth.user.email}> Removed passkey from account`);
+  logger.log(`<${req.auth.user.email}> Removed passkey from account`);
 
-    await db.delete(authenticatorsTable).where(
-        eqLow(authenticatorsTable.userId, req.auth.user.id)
-    ).execute();
+  await db
+    .delete(authenticatorsTable)
+    .where(eqLow(authenticatorsTable.userId, req.auth.user.id))
+    .execute();
 
-    await db.delete(accountsTable).where(
-        and(
-            eqLow(accountsTable.userId, req.auth.user.id),
-            eqLow(accountsTable.provider, 'passkey')
-        )
-    ).execute();
+  await db
+    .delete(accountsTable)
+    .where(
+      and(
+        eqLow(accountsTable.userId, req.auth.user.id),
+        eqLow(accountsTable.provider, "passkey"),
+      ),
+    )
+    .execute();
 
-    return NextResponse.json({ success: true }, { status: 200 });
+  return NextResponse.json({ success: true }, { status: 200 });
 });

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     title: clientconfig.websiteName,
   },
-  manifest: '/manifest.webmanifest',
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -17,9 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

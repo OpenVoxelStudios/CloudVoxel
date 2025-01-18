@@ -26,7 +26,7 @@ cp config.example.ts config.ts
 echo ""
 echo "Installing dependencies... (this can take a moment)"
 if [ "$useCommand" = "bun" ]; then
-    bun install --silent >/dev/null
+    bun install
     if ! bun pm trust --all >/dev/null 2>&1; then
         echo "Failed to run post-install scripts, trying without"
     fi
