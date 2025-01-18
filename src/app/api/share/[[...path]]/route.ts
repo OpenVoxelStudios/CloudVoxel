@@ -70,17 +70,13 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
             ${mimeType && (
                 mimeType.startsWith('video/') ?
                     [
-                        // `<meta property="twitter:player:height" content="${video.height}"/>`,
-                        // `<meta property="twitter:player:width" content="${video.width}"/>`,
-                        // `<meta property="og:video:height" content="${video.height}"/>`,
-                        // `<meta property="og:video:width" content="${video.width}"/>`,
                         `<meta property="twitter:player:stream" content="${req.url}&embedded=true"/>`,
                         `<meta property="twitter:player:stream:content_type" content="${mimeType}"/>`,
                         `<meta property="og:video" content="${req.url}&embedded=true"/>`,
                         `<meta property="og:video:secure_url" content="${req.url}&embedded=true"/>`,
                         `<meta property="og:video:type" content="${mimeType}"/>`,
 
-                        `<meta property="og:type" content="video.movie" />`,
+                        `<meta property="og:type" content="video.other" />`,
                     ].join('\n')
                     : mimeType.startsWith('image/') ? [
                         `<meta property="twitter:image" content="${req.url}&embedded=true"/>`,
