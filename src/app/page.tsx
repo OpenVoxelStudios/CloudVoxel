@@ -101,7 +101,7 @@ function AboutSection() {
             </p>
           </div>
           <div className="mt-10 lg:mt-0 flex justify-center animate-fade-in-right">
-            <Image unoptimized src={clientconfig.websiteLogo} alt="CloudVoxel Illustration" className="rounded-lg shadow-2xl" height={400} width={400} />
+            <Image src={clientconfig.websiteLogo} alt="CloudVoxel Illustration" className="rounded-lg shadow-2xl" height={400} width={400} />
           </div>
         </div>
       </div>

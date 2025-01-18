@@ -3,7 +3,7 @@ export default {
     websiteName: 'CloudVoxel',
     websiteURL: process.env.AUTH_URL || 'http://localhost:3000',
     websiteDescription: 'An Open-Source local-first solution to file sharing.',
-    websiteLogo: '/icon.png',
+    websiteLogo: '/siteicon.png',
     maxFileSize: '1000 MB',
     maxFileCount: 25,
     instantUpload: true,

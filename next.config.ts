@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-                            "img-src 'self' https:", // Allows HTTPS images from any domain
+                            "img-src 'self' https: data:", // Allows HTTPS images and data URIs
                             "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Needed for Next.js
                             "style-src 'self' 'unsafe-inline'", // Needed for styled-components/CSS
                             "connect-src 'self'",
