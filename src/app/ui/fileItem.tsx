@@ -158,7 +158,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                     <ContextMenuItem onClick={async () => {
                         setShareTo({
                             to: 'Everyone', url: (hash && code) ?
-                                `${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${hash}&code=${code}`
+                                `${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${hash}&code=${code}${partition ? `&partition=${encodeURIComponent(partition)}` : ''}`
                                 : new Promise(async resolve => {
                                     const res = await fetch(`/api/sharelink/${pathParts.map(encodeURIComponent).join('/')}/${encodeURIComponent(name)}`, {
                                         headers: {
@@ -168,7 +168,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                                     const json = await res.json();
 
                                     if (res.status == 200) {
-                                        resolve(`${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${json.hash}&code=${json.code}`);
+                                        resolve(`${location.origin}/api/share/${pathParts.concat(name).map(encodeURIComponent).join('/')}?hash=${json.hash}&code=${json.code}${partition ? `&partition=${encodeURIComponent(partition)}` : ''}`);
                                     }
                                     else {
                                         toast({
@@ -184,7 +184,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                         <Globe className="mr-2 h-4 w-4" />
                         <span>Everyone</span>
                     </ContextMenuItem>
-                    <ContextMenuItem onClick={() => setShareTo({ to: 'Logged-in Users', url: `${location.origin}/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}` })} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
+                    <ContextMenuItem onClick={() => setShareTo({ to: 'Logged-in Users', url: `${location.origin}/api/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}${partition ? `?partition=${encodeURIComponent(partition)}` : ''}` })} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                         <Users className="mr-2 h-4 w-4" />
                         <span>Logged-in Users</span>
                     </ContextMenuItem>
