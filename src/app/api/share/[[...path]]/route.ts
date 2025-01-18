@@ -53,10 +53,7 @@ export const GET = auth(async (req: NextRequest, { params }: { params: Promise<{
     const stats = statSync(pathStr);
     const mimeType = mime.getType(pathStr);
 
-    console.log(req.headers.get('User-Agent'), req.nextUrl.searchParams.get('embedded'), !req.nextUrl.searchParams.get('embedded'));
     if (isBot(req.headers.get('User-Agent')) && !req.nextUrl.searchParams.get('embedded')) {
-        console.log('BOT', '\n');
-
         return new NextResponse(`<!DOCTYPE html>
         <html>
         <head>
