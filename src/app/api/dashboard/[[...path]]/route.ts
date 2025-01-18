@@ -4,7 +4,7 @@ import path, { basename, parse } from "path";
 import mime from 'mime';
 import { db } from "@/../data/index";
 import { apiKeysTable, eqLow, filesTable, ilike, usersTable } from "@/../data/schema";
-import { and, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { formatBytes, sanitizedFilename, unformatBytes } from "@/lib/functions";
 import clientconfig from "@/../clientconfig";
@@ -90,6 +90,7 @@ async function handleFileUpload(req: NextRequest, pathStr: string, rawPathStr: s
     if (!(file instanceof File)) return NextResponse.json({ error: 'Invalid file.' }, { status: 400, statusText: 'Invalid file.' });
 
     const fileName = sanitizedFilename(file.name);
+    if (fileName == '') return NextResponse.json({ error: 'File name is empty.' }, { status: 400 });
     const fullPath = path.join(pathStr, fileName);
     const filePath = rawPathStr.join('/') == '' ? '/' : rawPathStr.join('/');
 
@@ -289,9 +290,20 @@ export const PATCH = auth(async (req: NextRequest, { params }: { params: Promise
             const moveParam = sanitizedFilename(UNSAFE_moveParam);
             const destination = rawPathStr.slice(0, -1);
             if (UNSAFE_moveParam != '../') destination.push(moveParam);
+            if (moveParam == '') return NextResponse.json({ error: 'Destination folder name is empty.' }, { status: 400 });
             else destination.pop();
 
             const newPath = destination.join('/') == '' ? '/' : destination.join('/');
+
+            const folderExists = destination.length == 0 ? [] : (await db.select().from(filesTable).where(and(
+                eqLow(filesTable.path, parse(destination.join('/')).dir == '' ? '/' : parse(destination.join('/')).dir),
+                eqLow(filesTable.name, basename(newPath)),
+                (partition && typeof ROOT !== 'string') ? eqLow(filesTable.partition, partition!) : isNull(filesTable.partition),
+                eq(filesTable.directory, 1),
+            )).limit(1))[0];
+
+            if (!folderExists) return NextResponse.json({ error: 'Destination folder does not exist.' }, { status: 404 });
+
             const moveExists = (await db.select().from(filesTable).where(and(
                 eqLow(filesTable.path, newPath),
                 eqLow(filesTable.name, fileName),

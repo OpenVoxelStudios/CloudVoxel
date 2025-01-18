@@ -17,5 +17,8 @@ export function unformatBytes(format: string | null): number {
 }
 
 export const sanitizedFilename = (filename: string): string => {
-    return filename.replace(/[^a-zA-Z0-9._\s-]/g, '');
+    const replaced = filename.replace(/[^a-zA-Z0-9._\s-]/g, '').replace(/\.{2,}/g, '.');
+    if (replaced.replaceAll('.', '').length === 0) return '';
+
+    return replaced.length > 64 ? replaced.slice(0, 64) : replaced;
 };
