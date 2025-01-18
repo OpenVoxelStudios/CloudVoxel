@@ -184,14 +184,14 @@ const MemoizedFileItem = React.memo(function FileItem({
                         <Globe className="mr-2 h-4 w-4" />
                         <span>Everyone</span>
                     </ContextMenuItem>
-                    <ContextMenuItem onClick={() => moveFolder(name, `${pathParts.concat(name).join('/')}`)} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
+                    <ContextMenuItem onClick={() => setShareTo({ to: 'Logged-in Users', url: `${location.origin}/dashboard/${pathParts.concat(name).map(encodeURIComponent).join('/')}` })} className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
                         <Users className="mr-2 h-4 w-4" />
                         <span>Logged-in Users</span>
                     </ContextMenuItem>
                 </ContextMenuSubContent>
             </ContextMenuSub>
         );
-    }, [directory, hash, code, pathParts, name, partition, setShareTo, toast, moveFolder]);
+    }, [directory, hash, code, pathParts, name, partition, setShareTo, toast]);
 
     return (
         <ContextMenu>
