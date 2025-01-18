@@ -35,6 +35,21 @@ const nextConfig: NextConfig = {
                         key: 'Referrer-Policy',
                         value: 'strict-origin-when-cross-origin',
                     },
+                    {
+                        key: 'Content-Security-Policy',
+                        value: [
+                            "default-src 'self'",
+                            "img-src 'self' https:", // Allows HTTPS images from any domain
+                            "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Needed for Next.js
+                            "style-src 'self' 'unsafe-inline'", // Needed for styled-components/CSS
+                            "connect-src 'self'",
+                            "font-src 'self'",
+                            "object-src 'none'",
+                            "base-uri 'self'",
+                            "form-action 'self'",
+                            "frame-ancestors 'none'",
+                        ].join('; ')
+                    }
                 ],
             },
             {
