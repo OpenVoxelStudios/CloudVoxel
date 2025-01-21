@@ -29,7 +29,9 @@ export async function getPartitions(
     .filter(
       (R) =>
         root[R].defaultAccess == "public" ||
-        root[R].groupAccess.some((g) => groups.includes(g)),
+        root[R].groupAccess.some((g) =>
+          groups.map((g) => g.toLowerCase()).includes(g.toLowerCase()),
+        ),
     )
     .map((R) => ({
       name: R,

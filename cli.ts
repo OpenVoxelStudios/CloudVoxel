@@ -260,14 +260,18 @@ async function main() {
 
       if (group === "back") return main();
       else if (group === "create") {
-        const name = await input({
-          message: "Enter new group identifier",
-          validate: (value) => {
-            if (groups.find((g) => g.name === value))
-              return "Group with this identifier already exists";
-            return true;
-          },
-        });
+        const name = (
+          await input({
+            message: "Enter new group identifier",
+            validate: (value) => {
+              if (
+                groups.find((g) => g.name.toLowerCase() === value.toLowerCase())
+              )
+                return "Group with this identifier already exists";
+              return true;
+            },
+          })
+        ).toLowerCase();
         const displayName = await input({
           message: "Enter new group display name",
         });
