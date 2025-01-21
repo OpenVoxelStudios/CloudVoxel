@@ -26,7 +26,7 @@ test.describe("Full Web Test Suite", () => {
     );
   });
 
-  test("File Upload", async ({ page }) => {
+  test("File Upload and Renaming", async ({ page }) => {
     await page.goto(`/dashboard/${encodeURIComponent(folderName)}`);
 
     await page.setInputFiles('input[type="file"]', {
@@ -51,19 +51,22 @@ test.describe("Full Web Test Suite", () => {
     ).toBeVisible();
   });
 
-  test("File Renaming and Moving", async ({ page }) => {
-    await page.goto(`/dashboard/${encodeURIComponent(folderName)}`);
-    await page.waitForSelector('text="Loading...', { state: "detached" });
+  test("File Moving", async ({ page }) => {
+    const answ = await (
+      await fetch(
+        `${baseURL}/api/dashboard/${encodeURIComponent(folderName)}/${encodeURIComponent(file.rename)}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: API_KEY,
+            Accept: "application/json",
+            "PATCH-move": "../",
+          },
+        },
+      )
+    ).json();
 
-    await page
-      .getByRole("heading", { name: file.rename })
-      .click({ button: "right" });
-    await page.getByRole("menuitem", { name: "Move to" }).hover();
-    await page.getByRole("menuitem", { name: "Back" }).click();
-
-    expect(
-      await page.$(`text='Moved "${file.rename}" back.'`, { strict: false }),
-    ).toBeDefined();
+    expect(answ.success).toBe(true);
   });
 
   test("File Fetching", async () => {

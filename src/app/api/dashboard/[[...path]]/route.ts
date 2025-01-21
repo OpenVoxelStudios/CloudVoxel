@@ -538,7 +538,7 @@ export const PATCH = auth(
         const moveParam = sanitizedFilename(UNSAFE_moveParam);
         const destination = rawPathStr.slice(0, -1);
         if (UNSAFE_moveParam != "../") destination.push(moveParam);
-        if (moveParam == "")
+        if (UNSAFE_moveParam != "../" && moveParam == "")
           return NextResponse.json(
             { error: "Destination folder name is empty." },
             { status: 400 },
