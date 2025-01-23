@@ -10,4 +10,4 @@ export default {
   maxParallelUploads: 2,
   allowImagePreview: false,
   allowFileMetadata: false,
-} as ClientConfig;
+} satisfies ClientConfig as ClientConfig;
