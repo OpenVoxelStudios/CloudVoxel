@@ -25,5 +25,8 @@ jobs:
       - name: Lint project
         run: bun run lint
 
+      - name: Install Playwright Browsers
+        run: bunx playwright install --with-deps
+
       - name: Run tests
         run: bun run test
