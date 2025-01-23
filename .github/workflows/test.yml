@@ -21,9 +21,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          - bun upgrade
-          - bun install
-          - bun pm trust --all
+          bun upgrade
+          bun install
+          bun pm trust --all
 
       - name: Lint project
         run: bun run lint
@@ -33,9 +33,9 @@ jobs:
 
       - name: Run tests
         run: |
-          - cp .github/config/.env.github .env.development
-          - cp clientconfig.example.ts clientconfig.ts
-          - cp .github/config/config.github.ts config.ts
-          - bun run db.generate
-          - bun run db.migrate
-          - bun run test
+          cp .github/config/.env.github .env.development
+          cp clientconfig.example.ts clientconfig.ts
+          cp .github/config/config.github.ts config.ts
+          bun run db.generate
+          bun run db.migrate
+          bun run test
