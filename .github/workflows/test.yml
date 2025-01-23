@@ -23,7 +23,6 @@ jobs:
         run: |
           bun upgrade
           bun install
-          bun pm trust --all
 
       - name: Lint project
         run: bun run lint
