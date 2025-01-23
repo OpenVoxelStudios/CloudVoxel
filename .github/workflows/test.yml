@@ -20,7 +20,10 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: bun install
+        run: |
+          - bun upgrade
+          - bun install
+          - bun pm trust --all
 
       - name: Lint project
         run: bun run lint
@@ -29,4 +32,10 @@ jobs:
         run: bunx playwright install --with-deps
 
       - name: Run tests
-        run: bun run test
+        run: |
+          - cp .github/config/.env.github .env.development
+          - cp clientconfig.example.ts clientconfig.ts
+          - cp .github/config/config.github.ts config.ts
+          - bun run db.generate
+          - bun run db.migrate
+          - bun run test
