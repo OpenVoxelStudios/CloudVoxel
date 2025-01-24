@@ -1,3 +1,15 @@
 # Table of contents
 
-* [Page](README.md)
+* [☁️ CloudVoxel - Welcome!](README.md)
+
+## Server Management
+
+* [Installation](server-management/installation.md)
+* [Configuration](server-management/configuration.md)
+* [Starting the server](server-management/starting-the-server.md)
+* [CLI](server-management/cli.md)
+* [Partitions](server-management/partitions.md)
+
+## Other
+
+* [API key permissions](other/api-key-permissions.md)
