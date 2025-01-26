@@ -200,8 +200,8 @@ async function handleFileUpload(
   const hashSum = createHash("sha256");
 
   await new Promise((resolve, reject) => {
-    writeStream.on("finish", resolve);
-    writeStream.on("error", reject);
+    writeStream.on("finish", () => resolve(true));
+    writeStream.on("error", (err) => reject(err));
 
     new ReadableStream({
       start() {

@@ -158,7 +158,7 @@ export default function FileList({
                 if (!url) return;
                 try {
                   await navigator.clipboard.writeText(
-                    `[${new URL(url).pathname.split("/").at(-1)}](${url})`,
+                    `[${decodeURIComponent(new URL(url).pathname.split("/").at(-1) || 'file')}](${url})`,
                   );
                   toast({ title: `Copied Discord link to clipboard.` });
                 } catch (err) {

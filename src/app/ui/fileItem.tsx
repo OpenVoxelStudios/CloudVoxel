@@ -257,6 +257,7 @@ const MemoizedFileItem = React.memo(function FileItem({
             href={`${directory ? "/dashboard" : "/api/dashboard"}${pathParts.length == 0 ? "" : "/"}${pathParts.map(encodeURIComponent).join("/")}/${encodeURIComponent(name)}${!directory && partition ? `?partition=${encodeURIComponent(partition)}` : ""}`}
             target={directory ? "_self" : "_blank"}
             className="flex-1"
+            prefetch={false}
           >
             <div className="flex items-center space-x-4 cursor-pointer">
               <div className="bg-blue-900 p-2 rounded-lg">
