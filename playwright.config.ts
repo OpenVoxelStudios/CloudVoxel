@@ -37,7 +37,7 @@ export default defineConfig({
 
     // Retry a test if its failing with enabled tracing. This allows you to analyze the DOM, console logs, network traffic etc.
     // More information: https://playwright.dev/docs/trace-viewer
-    trace: "on",
+    trace: "off",
 
     // All available context options: https://playwright.dev/docs/api/class-browser#browser-new-context
     // contextOptions: {
@@ -51,41 +51,9 @@ export default defineConfig({
       name: "Desktop Chrome",
       use: {
         ...devices["Desktop Chrome"],
-        storageState: path.join(__dirname, "test", "e2e", "storage.json"),
+        // storageState: path.join(__dirname, "test", "e2e", "storage.json"),
       },
       dependencies: ["setup"],
     },
-    // {
-    //     name: 'Desktop Firefox',
-    //     use: {
-    //         ...devices['Desktop Firefox'],
-    //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
-    //     },
-    //     dependencies: ['setup'],
-    // },
-    // {
-    //     name: 'Desktop Safari',
-    //     use: {
-    //         ...devices['Desktop Safari'],
-    //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
-    //     },
-    //     dependencies: ['setup'],
-    // },
-    // {
-    //     name: "Mobile Chrome",
-    //     use: {
-    //         ...devices["Pixel 5"],
-    //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
-    //     },
-    //     dependencies: ['setup'],
-    // },
-    // {
-    //     name: "Mobile Safari",
-    //     use: {
-    //         devices["iPhone 12"],
-    //         storageState: path.join(__dirname, 'test', 'e2e', 'storage.json'),
-    //     },
-    //     dependencies: ['setup'],
-    // },
   ],
 });

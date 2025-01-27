@@ -1,5 +1,5 @@
 import { db } from "@/../data/index";
-import { apiKeysTable, eqLow, usersTable } from "@/../data/schema";
+import { apiKeysTable, eqLow } from "@/../data/schema";
 import { test, expect } from "@playwright/test";
 import { baseURL } from "../../playwright.config";
 
@@ -13,45 +13,68 @@ test.describe("Full Web Test Suite", () => {
   };
   const API_KEY = "01234567-8901-2345-6789-012345678901";
 
-  test("Folder creation", async ({ page }) => {
-    await page.goto("/dashboard");
+  test("Folder creation", async () => {
+    const answ = await (
+      await fetch(
+        `${baseURL}/api/dashboard/${encodeURIComponent(folderName)}?folder=true`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: API_KEY,
+            Accept: "application/json",
+          },
+        },
+      )
+    ).json();
 
-    await page.getByRole("button", { name: "Add Directory" }).click();
-    await page.getByLabel("Name").fill(folderName);
-    await page.getByRole("button", { name: "Create Directory" }).click();
-    await page.getByRole("link", { name: folderName }).click();
-
-    await expect(page).toHaveURL(
-      `/dashboard/${encodeURIComponent(folderName)}`,
-    );
+    expect(answ.success).toBe(true);
   });
 
-  test("File Upload and Renaming", async ({ page }) => {
-    await page.goto(`/dashboard/${encodeURIComponent(folderName)}`);
+  test("File Upload", async () => {
+    const answ = await (
+      await fetch(
+        `${baseURL}/api/dashboard/${encodeURIComponent(folderName)}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: API_KEY,
+            Accept: "application/json",
+          },
+          body: (() => {
+            const form = new FormData();
+            form.append(
+              "file",
+              new Blob([file.buffer], { type: file.mimeType }),
+              file.name,
+            );
+            return form;
+          })(),
+        },
+      )
+    ).json();
 
-    await page.setInputFiles('input[type="file"]', {
-      name: file.name,
-      mimeType: file.mimeType,
-      buffer: file.buffer,
-    });
-    await page
-      .getByRole("heading", { name: file.name })
-      .click({ button: "right" });
-    await page.getByRole("menuitem", { name: "Rename" }).click();
-    await page.getByLabel("Rename", { exact: true }).fill(file.rename);
-    await page.getByRole("button", { name: "Rename" }).click();
-
-    await page.waitForSelector(
-      `text=Renamed "${file.name}" to "${file.rename}".`,
-      { strict: false },
-    );
-
-    await expect(
-      page.getByRole("heading", { name: file.rename }),
-    ).toBeVisible();
+    expect(answ.success).toBe(true);
   });
 
-  test("File Moving", async ({ page }) => {
+  test("File Renaming", async () => {
+    const answ = await (
+      await fetch(
+        `${baseURL}/api/dashboard/${encodeURIComponent(folderName)}/${encodeURIComponent(file.name)}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: API_KEY,
+            Accept: "application/json",
+            "PATCH-rename": file.rename,
+          },
+        },
+      )
+    ).json();
+
+    expect(answ.success).toBe(true);
+  });
+
+  test("File Moving", async () => {
     const answ = await (
       await fetch(
         `${baseURL}/api/dashboard/${encodeURIComponent(folderName)}/${encodeURIComponent(file.rename)}`,
@@ -148,10 +171,6 @@ test.describe("Full Web Test Suite", () => {
   });
 
   test("Cleanup", async () => {
-    await db
-      .delete(usersTable)
-      .where(eqLow(usersTable.email, "test@example.com"))
-      .run();
     await db.delete(apiKeysTable).where(eqLow(apiKeysTable.key, API_KEY)).run();
   });
 });

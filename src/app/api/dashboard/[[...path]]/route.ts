@@ -231,7 +231,7 @@ async function handleFileUpload(
       size: formatBytes(file.size),
       uploadedAt: Date.now(),
       author:
-        req?.auth!.user?.email || req.headers.get("Authorization") || "api",
+        req?.auth?.user?.email || req.headers.get("Authorization") || "api",
       hash: hash,
       partition: partition && typeof ROOT !== "string" ? partition : undefined,
     })
@@ -375,7 +375,7 @@ export const POST = auth(
           path: fPath,
           directory: 1,
           author:
-            req?.auth!.user?.email || req.headers.get("Authorization") || "api",
+            req?.auth?.user?.email || req.headers.get("Authorization") || "api",
           partition:
             partition && typeof ROOT !== "string" ? partition : undefined,
         })
