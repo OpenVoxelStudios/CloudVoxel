@@ -1,6 +1,6 @@
 ---
-description: Manage the server by using the built-in Command Line Argument (CLI).
 icon: terminal
+description: Manage the server by using the built-in Command Line Interface (CLI).
 cover: >-
   https://github.com/user-attachments/assets/c75dd325-8a84-4033-a2ee-7f2ebf4f05d6
 coverY: 66
