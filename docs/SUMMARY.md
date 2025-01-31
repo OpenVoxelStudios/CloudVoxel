@@ -6,6 +6,7 @@
 
 * [Installation](server-management/installation.md)
 * [Configuration](server-management/configuration.md)
+* [Set page icons](server-management/set-page-icons.md)
 * [Starting the server](server-management/starting-the-server.md)
 * [CLI](server-management/cli.md)
 * [Partitions](server-management/partitions.md)

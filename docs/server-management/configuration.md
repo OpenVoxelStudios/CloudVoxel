@@ -1,8 +1,8 @@
 ---
+icon: gear
 description: >-
   Configuration is mandatory in order to run a CloudVoxel instance. Here's what
   you have to configure!
-icon: gear
 ---
 
 # Configuration
@@ -113,3 +113,5 @@ You do not need to specify IDs and SECRETs for every provider, only the one you 
 ***
 
 And that's it! You reached the end of the configuration! You can now start your server as you will see here: [starting-the-server.md](starting-the-server.md "mention").
+
+Before starting your server, you can also customize your site icon: [set-page-icons.md](set-page-icons.md "mention").
