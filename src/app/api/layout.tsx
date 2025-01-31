@@ -4,11 +4,10 @@ import clientconfig from "@/../clientconfig";
 export const metadata: Metadata = {
   title: `API Documentation - ${clientconfig.websiteName}`,
   description: clientconfig.websiteDescription,
-  icons: {
-    other: { url: '/images/icon.png' },
-    icon: '/images/favicon.ico',
-    apple: '/images/apple-icon.png',
+  appleWebApp: {
+    title: clientconfig.websiteName,
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -18,9 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

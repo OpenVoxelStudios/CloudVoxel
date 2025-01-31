@@ -1,7 +1,23 @@
-import { User } from "lucide-react";
-import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function UserAvatar({ src, className, size }: { src?: string | null, className?: string, size?: number }) {
-    if (!src) return <User className={className || "h-5 w-5"} />
-    return <Image unoptimized src={src} alt="The user avatar" className={className || ""} width={size || 32} height={size || 32} />
-};
+export default function UserAvatar({
+  src,
+  name,
+}: {
+  src?: string | null;
+  name: string;
+}) {
+  const rgx = /(\p{L}{1})\p{L}+/gu;
+  const initials = [...name.matchAll(rgx)];
+
+  return (
+    <Avatar>
+      <AvatarImage src={src || undefined} alt={`${name}'s avatar`} />
+      <AvatarFallback>
+        {(
+          (initials.shift()?.[1] || "") + (initials.pop()?.[1] || "")
+        ).toUpperCase()}
+      </AvatarFallback>
+    </Avatar>
+  );
+}

@@ -1,91 +1,112 @@
-import NextAuth, { Session } from "next-auth"
-import type { Provider } from "next-auth/providers"
+import NextAuth from "next-auth";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 
-import GitHub from "next-auth/providers/github"
-import Discord from "next-auth/providers/discord"
-import config from '@/../config';
-import clientconfig from "../clientconfig";
+import {
+  accountsTable,
+  authenticatorsTable,
+  eqLow,
+  sessionsTable,
+  usersTable,
+} from "@/../data/schema";
+import { db } from "@/../data/index";
+import { providers } from "./lib/providers";
+import config from "../config";
+import logger from "./lib/logger";
 
-import { eqLow, usersTable } from "@/../data/schema";
+export const {
+  handlers,
+  signIn,
+  signOut,
+  auth: nextAuth,
+} = NextAuth({
+  logger: logger,
+  session: {
+    strategy: "jwt",
+  },
+  adapter: DrizzleAdapter(db, {
+    usersTable: usersTable,
+    accountsTable: accountsTable,
+    sessionsTable: sessionsTable,
+    authenticatorsTable: authenticatorsTable,
+  }),
+  experimental: { enableWebAuthn: config.enableExperimentalPasskeys },
+  trustHost: true,
+  providers: providers,
+  pages: {
+    signIn: "/login",
+    error: "/error",
+  },
+  callbacks: {
+    async signIn(auth) {
+      const user = auth.user.email
+        ? await db
+            .select()
+            .from(usersTable)
+            .where(eqLow(usersTable.email, auth.user.email))
+            .get()
+        : undefined;
 
-/*
-(config.login?.credentials ? [Credentials({
-    credentials: {
-        username: {},
-        password: {},
+      if (!auth.user.email || !user) return false;
+      logger.log(`User ${auth.user?.name} (<${auth.user?.email}>) logged in`);
+
+      if (auth.user.image)
+        await db
+          .update(usersTable)
+          .set({
+            image: auth.user.image,
+          })
+          .where(eqLow(usersTable.email, auth.user.email))
+          .execute();
+
+      auth.user.id = user.id;
+      return true;
     },
-    authorize: async (credentials) => {
-        console.log(credentials)
-        const parsedCredentials = signInSchema.safeParse(credentials);
-        
-        if (parsedCredentials.success) {
-            const { username, password } = parsedCredentials.data;
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+      }
 
-            console.log(username, password);
-        }
+      if (!config.enableExperimentalPasskeys) return session;
+      const hasPasskey = await db
+        .select()
+        .from(authenticatorsTable)
+        .where(eqLow(authenticatorsTable.userId, session.user.id))
+        .get();
 
-        return { name: 'yes', email: 'yes@yes.yes', id: 'idk' };
-        return null;
+      return {
+        ...session,
+        hasPasskey: !!hasPasskey,
+      } as Session;
     },
-})] : [] as Provider[]).concat((
- */
-
-const providers: Provider[] = ([
-    ['Discord', Discord({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
-    ['GitHub', GitHub({ redirectProxyUrl: `${clientconfig.websiteURL}/api/auth` })],
-] as [string, Provider][]).filter(provider => (config.providers as unknown as string[]).includes(provider[0])).map(provider => provider[1]);
-
-export const providerMap = providers
-    .map((provider) => {
-        if (typeof provider === "function") {
-            const providerData = provider()
-            return { id: providerData.id, name: providerData.name }
-        } else {
-            return { id: provider.id, name: provider.name }
-        }
-    })
-    .filter((provider) => provider.id !== "credentials")
-
-export const { handlers, signIn, signOut, auth: nextAuth } = NextAuth({
-    trustHost: true,
-    providers,
-    pages: {
-        signIn: "/login",
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+      }
+      return token;
     },
-    callbacks: {
-        async signIn(auth) {
-            const { db } = await import("@/../data/index");
-            console.log('Loggin try in user', auth?.user?.name);
-
-            const user = auth.user.email ? await db.select().from(usersTable).where(eqLow(usersTable.email, auth.user.email)).get() : undefined;
-
-            if (!auth.user.email || !user) return false;
-
-            if (auth.user.image) await db.update(usersTable).set({
-                avatar: auth.user.image,
-            }).where(eqLow(usersTable.email, auth.user.email)).execute();
-
-            return true;
-        },
-    },
-})
+  },
+});
 
 type RouteParams = {
-    params: Promise<{ [key: string]: string | string[] | undefined }>;
-    searchParams?: { [key: string]: string | string[] | undefined };
+  params: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export const auth = nextAuth as unknown as {
-    (handler: (
-        req: NextRequest,
-        context: RouteParams
-    ) => Promise<Response> | Response
-    ): (req: NextRequest, context: RouteParams) => Promise<Response>;
+  (
+    handler: (
+      req: NextRequest,
+      context: RouteParams,
+    ) => Promise<Response> | Response,
+  ): (req: NextRequest, context: RouteParams) => Promise<Response>;
 
-    (handler: (
-        req: NextRequest
-    ) => Promise<Response | undefined> | Response | undefined
-    ): (req: NextRequest & { auth: Session | null }) => void;
+  (
+    handler: (
+      req: NextRequest,
+    ) => Promise<Response | undefined> | Response | undefined,
+  ): (req: NextRequest & { auth: Session | null }) => void;
 
-    (): Promise<Session>;
-}
+  (): Promise<Session>;
+};

@@ -1,0 +1,40 @@
+name: CloudVoxel Testing
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v4
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: |
+          bun upgrade
+          bun install
+
+      - name: Lint project
+        run: bun run lint
+
+      - name: Install Playwright Browsers
+        run: bunx playwright install --with-deps
+
+      - name: Run tests
+        run: |
+          cp .github/config/.env.github .env.development
+          cp clientconfig.example.ts clientconfig.ts
+          cp .github/config/config.github.ts config.ts
+          bun run db.generate
+          bun run db.migrate
+          bun run test

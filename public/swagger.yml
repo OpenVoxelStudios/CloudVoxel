@@ -183,7 +183,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Success"
+                $ref: "#/components/schemas/Error"
         "401":
           description: Unauthorized
           content:
@@ -241,7 +241,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Success"
+                $ref: "#/components/schemas/Error"
         "401":
           description: Unauthorized
           content:
@@ -431,7 +431,7 @@ components:
           nullable: true
           description: "Details about the author, or null if no author is associated."
           properties:
-            avatar:
+            image:
               type: string
               description: "The URL of the author's avatar."
               example: "https://example.com/avatar.png"

@@ -1,58 +1,81 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    images: {
-        remotePatterns: [],
-        localPatterns: [
-            {
-                pathname: '/images/**',
-            },
+  images: {
+    remotePatterns: [],
+    localPatterns: [
+      {
+        pathname: "/images/**",
+      },
+      {
+        pathname: "/*.png",
+      },
+    ],
+  },
+
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
+  productionBrowserSourceMaps: false,
+
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "img-src 'self' https: data:", // Allows HTTPS images and data URIs
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Needed for Next.js
+              "style-src 'self' 'unsafe-inline'", // Needed for styled-components/CSS
+              "connect-src 'self'",
+              "font-src 'self'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
         ],
-    },
-
-    compress: true,
-    poweredByHeader: false,
-    reactStrictMode: true,
-    productionBrowserSourceMaps: false,
-
-    async headers() {
-        return [
-            {
-                source: '/:path*',
-                headers: [
-                    {
-                        key: 'X-DNS-Prefetch-Control',
-                        value: 'on'
-                    },
-                    {
-                        key: 'X-XSS-Protection',
-                        value: '1; mode=block'
-                    },
-                    {
-                        key: 'X-Frame-Options',
-                        value: 'SAMEORIGIN'
-                    },
-                    {
-                        key: 'X-Content-Type-Options',
-                        value: 'nosniff'
-                    },
-                    {
-                        key: 'Referrer-Policy',
-                        value: 'strict-origin-when-cross-origin'
-                    }
-                ]
-            },
-            {
-                source: '/images/:path*',
-                headers: [
-                    {
-                        key: 'Cache-Control',
-                        value: 'public, max-age=31536000, immutable'
-                    }
-                ]
-            }
-        ];
-    },
+      },
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+        ],
+      },
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
