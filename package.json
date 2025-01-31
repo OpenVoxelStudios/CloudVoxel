@@ -68,7 +68,7 @@
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.5",
     "@simplewebauthn/browser": "9.0.1",
-    "@simplewebauthn/server": "9.0.3",
+    "@simplewebauthn/server": "13.1.1",
     "@types/better-sqlite3": "^7.6.12",
     "@types/lodash": "^4.17.15",
     "bcrypt": "^5.1.1",
