@@ -14,3 +14,4 @@
 ## Other
 
 * [API key permissions](other/api-key-permissions.md)
+* [Server Analytics](other/server-analytics.md)
