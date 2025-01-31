@@ -19,6 +19,8 @@ export const sortOptions = [
 import { useCallback, useEffect, useMemo, useState } from "react";
 import debounce from "lodash/debounce";
 import { useToast } from "@/hooks/use-toast";
+import { redirect } from "next/navigation";
+import clientconfig from "../../../clientconfig";
 
 export default function FileListWrapper({
   pathParts,
@@ -52,13 +54,17 @@ export default function FileListWrapper({
     }
     return "name";
   });
-  const [partition, setPartition] = useState<string | undefined>(() => {
+  const [partition, realSetPartition] = useState<string | undefined>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("preferences.partition");
       return stored ? stored : partitions?.[0]?.name || undefined;
     }
     return undefined;
   });
+  const setPartition = useCallback((newPartition: string | undefined) => {
+    realSetPartition(newPartition);
+    redirect(`${clientconfig.websiteURL}/dashboard`);
+  }, []);
 
   const debouncedFetch = useCallback(async () => {
     try {

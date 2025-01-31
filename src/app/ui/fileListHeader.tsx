@@ -44,7 +44,7 @@ export default function FileListHeader({
   setSortOrder: Dispatch<SetStateAction<boolean>>;
   partitions: { name: string; displayName: string }[] | undefined;
   partition: string | undefined;
-  setPartition: Dispatch<SetStateAction<string | undefined>>;
+  setPartition: (newPartition: string | undefined) => never;
 }) {
   const { toast } = useToast();
 
