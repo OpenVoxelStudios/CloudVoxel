@@ -16,6 +16,7 @@ CloudVoxel is a robust file-sharing platform that puts you in control:
 - 🔗 **File Sharing**: Share files with others, even if they are not logged in
 - 🔒 **Access Control**: User whitelisting by their email address
 - 💡 **Open Source**: Community-driven development and transparency
+- 🔥 **Documentation**: https://docs.openvoxel.studio
 
 ## Preview
 
@@ -37,66 +38,13 @@ You can use the [install.sh](/install.sh) script like the following for Mac and 
 curl -fsSL https://raw.githubusercontent.com/OpenVoxelStudios/CloudVoxel/refs/heads/main/install.sh | bash
 ```
 
----
-
-Or manually: First, clone the repository and prepare the configuration files:
-
-```bash
-git clone https://github.com/OpenVoxelStudios/CloudVoxel/
-cd CloudVoxel
-cp .env.example .env.production
-cp clientconfig.example.ts clientconfig.ts
-cp config.example.ts config.ts
-```
-
-Then install the dependencies with `bun install`, `npm install` or any other node package manager.
-
-Now, there are 3 config files, so go ahead and edit them!
-
-```yaml
-- clientconfig.ts: All the configuration that will be used client side
-- config.ts: The server side configuration
-- .env.production: All the credentials and keys
-- .env.development: (optional) You can also setup this file to use it when running in dev mode
-```
-
-Now that you have your config, you can init the database with one of these commands:
-
-```bash
-npx drizzle-kit generate && npx drizzle-kit migrate
-# or
-bunx drizzle-kit generate && bunx drizzle-kit migrate
-```
-
-**You are now ready to run CloudVoxel!**
-
-In dev mode:
-
-```bash
-npx next dev
-```
-
-Or in production mode:
-
-```bash
-# only run build once after each edit
-npx next build
-npx next start
-```
-
-NOTE: NextJS does not use https. If you want to open it to the internet in https (highly recommended), you can use software like NGINX to serve as a "proxy".
-NOTE for icons: Use a tool like https://realfavicongenerator.net/ to get all the necessary icons and favicons and select NextJS on the "Ready" page and follow the instructions.
+Or visit [this page](https://docs.openvoxel.studio/server-management/installation) for a detailed guide for manual installation.
 
 ## Documentation
 
-> There's no dedicated page yet!
+CloudVoxel now has it's dedicated documentation page!
 
-You can manage users, manage API keys and sync the local storage with the database with the new CLI introduced in v1.1!
-
-```bash
-bun cli.ts
-# it seems like the cli does not work with "deno"
-```
+You can visit it at this URL: **https://docs.openvoxel.studio**
 
 ## Contributing
 
