@@ -53,7 +53,7 @@
     "@inquirer/confirm": "^5.1.4",
     "@inquirer/input": "^4.1.4",
     "@inquirer/password": "^4.0.7",
-    "@inquirer/select": "^4.0.7",
+    "@inquirer/select": "^4.0.8",
     "@libsql/client": "^0.14.0",
     "@playwright/test": "^1.50.0",
     "@radix-ui/react-alert-dialog": "^1.1.5",
