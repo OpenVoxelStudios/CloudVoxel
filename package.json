@@ -51,7 +51,7 @@
     "@icons-pack/react-simple-icons": "^11.2.0",
     "@inquirer/checkbox": "^4.0.7",
     "@inquirer/confirm": "^5.1.4",
-    "@inquirer/input": "^4.1.4",
+    "@inquirer/input": "^4.1.5",
     "@inquirer/password": "^4.0.7",
     "@inquirer/select": "^4.0.7",
     "@libsql/client": "^0.14.0",
