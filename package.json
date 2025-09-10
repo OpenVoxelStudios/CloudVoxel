@@ -69,6 +69,7 @@
     "@radix-ui/react-toast": "^1.2.15",
     "@simplewebauthn/browser": "13.1.2",
     "@simplewebauthn/server": "13.1.2",
+    "@tailwindcss/postcss": "^4.1.13",
     "@types/better-sqlite3": "^7.6.13",
     "@types/lodash": "^4.17.20",
     "bcrypt": "^6.0.0",
@@ -120,6 +121,7 @@
   },
   "trustedDependencies": [
     "@scarf/scarf",
+    "@tailwindcss/oxide",
     "@tree-sitter-grammars/tree-sitter-yaml",
     "bcrypt",
     "better-sqlite3",
