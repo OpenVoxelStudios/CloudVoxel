@@ -5,7 +5,7 @@ import Home from "./ui/home";
 
 export const metadata = defaultMetadata;
 
-export default function () {
+export default function page() {
   if (!clientconfig.mainPageAllowed)
     return redirect("/dashboard", RedirectType.replace);
 

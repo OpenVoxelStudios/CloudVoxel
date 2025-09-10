@@ -5,12 +5,12 @@ import { ArrowRight, Code, Server, Users, Shield, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import clientconfig from "@/../clientconfig";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 
-const AnimationMain = dynamic(
-  () => import("./animations").then((mod) => mod.AnimationMain),
-  { ssr: false },
-);
+// const AnimationMain = dynamic(
+//   () => import("./animations").then((mod) => mod.AnimationMain),
+//   { ssr: false },
+// );
 
 export default function Home() {
   return (
@@ -29,8 +29,8 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="flex-grow">
-        <AnimationMain />
+      <main className="grow">
+        {/* <AnimationMain /> */}
         <HeroSection />
         <AboutSection />
         <FeaturesSection />
@@ -66,8 +66,8 @@ function NavLink({
 
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden py-20 sm:py-32 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <div className="absolute inset-0 bg-[url(/grid.svg)] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] animate-pulse-slow"></div>
+    <section className="relative overflow-hidden py-20 sm:py-32 bg-linear-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="absolute inset-0 bg-[url(/grid.svg)] bg-center mask-[linear-gradient(180deg,white,rgba(255,255,255,0))] animate-pulse-slow"></div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
         <h1 className="text-4xl sm:text-6xl font-bold text-white mb-6 animate-fade-in-up">
           CloudVoxel
@@ -277,7 +277,7 @@ function RoadmapItem({
       className={`flex items-start space-x-4 animate-fade-in-left`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex-shrink-0">{icon}</div>
+      <div className="shrink-0">{icon}</div>
       <div>
         <h3 className="text-xl font-semibold text-white">{title}</h3>
         <p className="text-gray-300 mt-1">{description}</p>

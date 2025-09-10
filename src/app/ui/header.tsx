@@ -20,7 +20,7 @@ export default async function Header({ pathParts }: { pathParts: string[] }) {
               alt={clientconfig.websiteName}
               width={32}
               height={32}
-              className="flex-shrink-0 w-8 h-8 mr-3"
+              className="shrink-0 w-8 h-8 mr-3"
             />
             <div className="overflow-hidden">
               <Link href="/dashboard">
@@ -38,7 +38,7 @@ export default async function Header({ pathParts }: { pathParts: string[] }) {
                     className="flex items-center min-w-fit"
                   >
                     {index > 0 && (
-                      <ChevronRight className="w-3 h-3 mx-1 flex-shrink-0" />
+                      <ChevronRight className="w-3 h-3 mx-1 shrink-0" />
                     )}
                     <span className="truncate">{part}</span>
                   </Link>

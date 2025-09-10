@@ -167,7 +167,7 @@ export default function FileListWrapper({
     if (partitions && !partitions.some((p) => p.name === partition)) {
       setPartition(partitions[0]?.name);
     }
-  }, [partitions, partition]);
+  }, [partitions, partition, setPartition]);
 
   useEffect(() => {
     fetchFiles();

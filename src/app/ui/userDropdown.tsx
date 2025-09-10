@@ -105,7 +105,7 @@ export default function UserDropdown({ session }: { session: Session }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-64 p-2 bg-background border border-border shadow-lg rounded-lg"
+          className="w-64 p-2 bg-background border shadow-lg rounded-lg"
         >
           <div className="flex flex-col space-y-1 p-2 mb-2 bg-accent/10 rounded-md">
             <div className="flex items-center gap-2">

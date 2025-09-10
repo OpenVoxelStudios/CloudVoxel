@@ -186,7 +186,7 @@ const MemoizedFileItem = React.memo(function FileItem({
     if (directory) return null;
     return (
       <ContextMenuSub>
-        <ContextMenuSubTrigger className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 data-[state=open]:bg-gray-800 data-[highlighted]:text-white data-[state=open]:text-white">
+        <ContextMenuSubTrigger className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800 data-[state=open]:bg-gray-800 data-highlighted:text-white data-[state=open]:text-white">
           <Share2 className="mr-2 h-4 w-4" />
           <span>Share</span>
         </ContextMenuSubTrigger>
@@ -224,7 +224,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                       }),
               });
             }}
-            className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer"
+            className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800 cursor-pointer"
           >
             <Globe className="mr-2 h-4 w-4" />
             <span>Everyone</span>
@@ -236,7 +236,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                 url: `${location.origin}/api/dashboard/${pathParts.concat(name).map(encodeURIComponent).join("/")}${partition ? `?partition=${encodeURIComponent(partition)}` : ""}`,
               })
             }
-            className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer"
+            className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800 cursor-pointer"
           >
             <Users className="mr-2 h-4 w-4" />
             <span>Logged-in Users</span>
@@ -279,7 +279,7 @@ const MemoizedFileItem = React.memo(function FileItem({
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-64 bg-gray-900 border-gray-700">
-        <ContextMenuItem className="text-white hover:bg-gray-900 focus:bg-gray-900 hover:text-white focus:text-white data-[highlighted]:bg-gray-900">
+        <ContextMenuItem className="text-white hover:bg-gray-900 focus:bg-gray-900 hover:text-white focus:text-white data-highlighted:bg-gray-900">
           <FolderIcon className="mr-2 h-4 w-4" />
           <span>{name}</span>
         </ContextMenuItem>
@@ -290,7 +290,7 @@ const MemoizedFileItem = React.memo(function FileItem({
             href={`/api/dashboard/${pathParts.map(encodeURIComponent).join("/")}/${encodeURIComponent(name)}?download=true${partition ? `&partition=${encodeURIComponent(partition)}` : ""}`}
             target="_blank"
           >
-            <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer">
+            <ContextMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800 cursor-pointer">
               <Download className="mr-2 h-4 w-4" />
               <span>Download</span>
             </ContextMenuItem>
@@ -301,7 +301,7 @@ const MemoizedFileItem = React.memo(function FileItem({
           onClick={() => {
             setRenameTo({ from: name, to: name });
           }}
-          className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 cursor-pointer"
+          className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800 cursor-pointer"
         >
           <Edit className="mr-2 h-4 w-4" />
           <span>Rename</span>
@@ -309,7 +309,7 @@ const MemoizedFileItem = React.memo(function FileItem({
 
         {(folders.length > 0 || pathParts.length > 0) && (
           <ContextMenuSub>
-            <ContextMenuSubTrigger className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800 data-[state=open]:bg-gray-800 data-[highlighted]:text-white data-[state=open]:text-white">
+            <ContextMenuSubTrigger className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800 data-[state=open]:bg-gray-800 data-highlighted:text-white data-[state=open]:text-white">
               <FolderInput className="mr-2 h-4 w-4" />
               <span>Move to</span>
             </ContextMenuSubTrigger>
@@ -318,7 +318,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                 <ContextMenuItem
                   key={`move-from-${name}-back`}
                   onClick={() => moveFolder(name, "../")}
-                  className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800"
+                  className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800"
                 >
                   <FolderOutput className="mr-2 h-4 w-4" />
                   Back
@@ -328,7 +328,7 @@ const MemoizedFileItem = React.memo(function FileItem({
                 <ContextMenuItem
                   key={`move-from-${name}-to-${folder}`}
                   onClick={() => moveFolder(name, folder)}
-                  className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-[highlighted]:bg-gray-800"
+                  className="text-white hover:bg-gray-800 focus:bg-gray-800 hover:text-white focus:text-white data-highlighted:bg-gray-800"
                 >
                   {folder}
                 </ContextMenuItem>

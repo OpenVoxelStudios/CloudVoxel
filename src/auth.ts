@@ -1,4 +1,5 @@
-import NextAuth from "next-auth";
+import NextAuth, { type Session } from "next-auth";
+import { type NextRequest } from "next/server";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 
 import {
@@ -97,14 +98,14 @@ type RouteParams = {
 export const auth = nextAuth as unknown as {
   (
     handler: (
-      req: NextRequest,
+      req: NextRequest & { auth: Session | null },
       context: RouteParams,
     ) => Promise<Response> | Response,
   ): (req: NextRequest, context: RouteParams) => Promise<Response>;
 
   (
     handler: (
-      req: NextRequest,
+      req: NextRequest & { auth: Session | null },
     ) => Promise<Response | undefined> | Response | undefined,
   ): (req: NextRequest & { auth: Session | null }) => void;
 
