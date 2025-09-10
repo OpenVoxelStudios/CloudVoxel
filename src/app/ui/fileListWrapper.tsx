@@ -35,6 +35,7 @@ export default function FileListWrapper({
   const [partitions, setPartitions] = useState<
     { name: string; displayName: string }[] | undefined
   >(undefined);
+  const [partitionsFetched, setPartitionsFetched] = useState(false);
   const [files, setFiles] = useState(initialFiles);
   const [sortOrder, setSortOrder] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -140,21 +141,27 @@ export default function FileListWrapper({
   }, [partition, debouncedSetPartition]);
 
   useEffect(() => {
-    fetch("/api/partitions", { cache: "no-cache" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch partitions");
-        return res.json();
-      })
-      .then((data) => setPartitions(data == "undefined" ? undefined : data))
-      .catch((err) => {
-        toast({
-          title: `Could not fetch partitions.`,
-          description: `${err || "No error message"}`,
-          variant: "destructive",
+    if (!partitionsFetched) {
+      fetch("/api/partitions", { cache: "no-cache" })
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch partitions");
+          return res.json();
+        })
+        .then((data) => {
+          setPartitions(data == "undefined" ? undefined : data);
+          setPartitionsFetched(true);
+        })
+        .catch((err) => {
+          toast({
+            title: `Could not fetch partitions.`,
+            description: `${err || "No error message"}`,
+            variant: "destructive",
+          });
+          setPartitions(undefined);
+          setPartitionsFetched(true);
         });
-        setPartitions(undefined);
-      });
-  }, [toast]);
+    }
+  }, [toast, partitionsFetched]);
 
   useEffect(() => {
     if (partitions && !partitions.some((p) => p.name === partition)) {
