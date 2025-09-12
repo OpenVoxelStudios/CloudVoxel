@@ -155,10 +155,10 @@ export const GET = auth(
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunksize = (end - start) + 1;
+      const chunksize = end - start + 1;
 
       const readStream = createReadStream(pathStr, { start, end });
-      
+
       return new NextResponse(readStream as unknown as ReadableStream, {
         status: 206,
         headers: {
