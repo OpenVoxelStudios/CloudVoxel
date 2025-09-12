@@ -102,60 +102,90 @@ export const GET = auth(
       isBot(req.headers.get("User-Agent")) &&
       !req.nextUrl.searchParams.get("embedded")
     ) {
+      // For video files, provide video dimensions if possible
+      const videoMeta =
+        mimeType && mimeType.startsWith("video/")
+          ? [
+              `<meta property="og:video" content="${req.url}&embedded=true"/>`,
+              `<meta property="og:video:secure_url" content="${req.url}&embedded=true"/>`,
+              `<meta property="og:video:type" content="${mimeType}"/>`,
+              `<meta property="og:video:width" content="1920"/>`,
+              `<meta property="og:video:height" content="1080"/>`,
+              `<meta property="og:type" content="video.other"/>`,
+              `<meta name="twitter:card" content="player"/>`,
+              `<meta name="twitter:player" content="${req.url}&embedded=true"/>`,
+              `<meta name="twitter:player:width" content="1920"/>`,
+              `<meta name="twitter:player:height" content="1080"/>`,
+              `<meta name="twitter:player:stream" content="${req.url}&embedded=true"/>`,
+              `<meta name="twitter:player:stream:content_type" content="${mimeType}"/>`,
+            ].join("\n")
+          : "";
+
+      const imageMeta =
+        mimeType && mimeType.startsWith("image/")
+          ? [
+              `<meta property="og:image" content="${req.url}&embedded=true"/>`,
+              `<meta property="og:image:secure_url" content="${req.url}&embedded=true"/>`,
+              `<meta property="og:image:type" content="${mimeType}"/>`,
+              `<meta property="og:type" content="website"/>`,
+              `<meta name="twitter:card" content="summary_large_image"/>`,
+              `<meta name="twitter:image" content="${req.url}&embedded=true"/>`,
+            ].join("\n")
+          : "";
+
       return new NextResponse(
         `<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>${fileName} on ${clientconfig.websiteName}</title>
-            <meta property="og:title" content="${fileName} on ${clientconfig.websiteName}" />
-            <meta property="og:url" content="${req.url}" />
-            <meta property="og:description" content="File Size: ${file.size}" />
-            <meta name="twitter:title" content="${fileName} on ${clientconfig.websiteName}" />
-            <meta name="twitter:description" content="File Size: ${file.size}" />
-            <meta name="twitter:card" content="summary_large_image">
-
-            ${
-              mimeType &&
-              (mimeType.startsWith("video/")
-                ? [
-                    `<meta property="twitter:player:stream" content="${req.url}&embedded=true"/>`,
-                    `<meta property="twitter:player:stream:content_type" content="${mimeType}"/>`,
-                    `<meta property="og:video" content="${req.url}&embedded=true"/>`,
-                    `<meta property="og:video:secure_url" content="${req.url}&embedded=true"/>`,
-                    `<meta property="og:video:type" content="${mimeType}"/>`,
-
-                    `<meta property="og:type" content="video.other" />`,
-                  ].join("\n")
-                : mimeType.startsWith("image/")
-                  ? [
-                      `<meta property="twitter:image" content="${req.url}&embedded=true"/>`,
-                      `<meta property="og:image" content="${req.url}&embedded=true"/>`,
-
-                      `<meta property="og:type" content="image" />`,
-                    ].join("\n")
-                  : "")
-            }
-        </head>
-        <body />
-        </html>`,
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${fileName} on ${clientconfig.websiteName}</title>
+    <meta property="og:title" content="${fileName} on ${clientconfig.websiteName}"/>
+    <meta property="og:url" content="${req.url}"/>
+    <meta property="og:description" content="File Size: ${file.size}"/>
+    <meta property="og:site_name" content="${clientconfig.websiteName}"/>
+    <meta name="twitter:title" content="${fileName} on ${clientconfig.websiteName}"/>
+    <meta name="twitter:description" content="File Size: ${file.size}"/>
+    ${videoMeta}${imageMeta}
+</head>
+<body>
+    <h1>${fileName}</h1>
+    <p>File Size: ${file.size}</p>
+    <p><a href="${req.url}&embedded=true">Direct Link</a></p>
+</body>
+</html>`,
         {
           status: 200,
           headers: {
-            "Cache-Control": "public, s-maxage=30, stale-while-revalidate=10",
             "Content-Type": "text/html",
+            "Cache-Control": "public, max-age=300, stale-while-revalidate=60",
           },
         },
       );
     }
 
     // Handle range requests for partial content (important for video streaming)
-    if (range && mimeType && mimeType.startsWith("video/")) {
+    if (
+      range &&
+      mimeType &&
+      (mimeType.startsWith("video/") || mimeType.startsWith("audio/"))
+    ) {
       const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const start = parseInt(parts[0], 10) || 0;
+      const end = parts[1]
+        ? parseInt(parts[1], 10)
+        : Math.min(start + 1024 * 1024, fileSize - 1); // Limit chunk size to 1MB
       const chunksize = end - start + 1;
+
+      // Validate range
+      if (start >= fileSize || end >= fileSize || start > end) {
+        return new NextResponse("Range Not Satisfiable", {
+          status: 416,
+          headers: {
+            "Content-Range": `bytes */${fileSize}`,
+          },
+        });
+      }
 
       const readStream = createReadStream(pathStr, { start, end });
 
@@ -168,24 +198,34 @@ export const GET = auth(
           "Content-Type": mimeType,
           ETag: `"${fileHash}"`,
           "X-Content-SHA256": fileHash,
-          "Cache-Control": "public, max-age=31536000, immutable",
+          "Cache-Control": "public, max-age=3600, stale-while-revalidate=300",
         },
       });
     }
 
+    // For non-range requests or non-video files
     const readStream = createReadStream(pathStr);
+
+    // Add timeout handling for large files
+    const isLargeFile = fileSize > 50 * 1024 * 1024; // 50MB threshold
+
     const response = new NextResponse(readStream as unknown as ReadableStream, {
       status: 200,
       headers: {
         "Content-Type":
           (req.nextUrl.searchParams.get("download") == "true"
-            ? false
+            ? "application/octet-stream"
             : mimeType) || "application/octet-stream",
-        "Content-Length": stats.size.toString(),
+        "Content-Length": fileSize.toString(),
         "Accept-Ranges": "bytes",
         ETag: `"${fileHash}"`,
         "X-Content-SHA256": fileHash,
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": isLargeFile
+          ? "public, max-age=3600, stale-while-revalidate=300"
+          : "public, max-age=31536000, immutable",
+        // Add headers to prevent timeouts
+        Connection: "keep-alive",
+        "Keep-Alive": "timeout=30, max=100",
       },
     });
     return response;
