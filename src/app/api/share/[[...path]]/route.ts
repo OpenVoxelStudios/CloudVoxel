@@ -94,6 +94,10 @@ export const GET = auth(
     const stats = statSync(pathStr);
     const mimeType = mime.getType(pathStr);
 
+    // Handle range requests for video streaming
+    const range = req.headers.get("range");
+    const fileSize = stats.size;
+
     if (
       isBot(req.headers.get("User-Agent")) &&
       !req.nextUrl.searchParams.get("embedded")
@@ -146,6 +150,29 @@ export const GET = auth(
       );
     }
 
+    // Handle range requests for partial content (important for video streaming)
+    if (range && mimeType && mimeType.startsWith("video/")) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+
+      const readStream = createReadStream(pathStr, { start, end });
+      
+      return new NextResponse(readStream as unknown as ReadableStream, {
+        status: 206,
+        headers: {
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": chunksize.toString(),
+          "Content-Type": mimeType,
+          ETag: `"${fileHash}"`,
+          "X-Content-SHA256": fileHash,
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
+
     const readStream = createReadStream(pathStr);
     const response = new NextResponse(readStream as unknown as ReadableStream, {
       status: 200,
@@ -155,9 +182,10 @@ export const GET = auth(
             ? false
             : mimeType) || "application/octet-stream",
         "Content-Length": stats.size.toString(),
+        "Accept-Ranges": "bytes",
         ETag: `"${fileHash}"`,
         "X-Content-SHA256": fileHash,
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=10",
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
     return response;
